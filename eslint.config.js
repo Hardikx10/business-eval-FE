@@ -13,8 +13,11 @@ export default [
   pluginReact.configs.flat.recommended,
   prettierConfig,
   {
-    rules: {
-      "react/react-in-jsx-scope": "off",      
+    "files": ["*.jsx", "*.tsx"], 
+    "rules": {
+      "react/react-in-jsx-scope": "off",
+      "@typescript-eslint/no-unused-vars": "off"
+      
     },
     settings: {
       react: {

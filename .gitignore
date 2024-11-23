@@ -1,0 +1,39 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Compiled TypeScript files
+dist/
+build/
+
+# Logs
+*.log
+logs/
+debug.log
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache and build artifacts
+.cache/
+out/
+*.lock
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.iml
+*.sw?
+.DS_Store
+
+# Optional: Coverage directories (if using Jest or similar tools)
+coverage/

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from 'zustand';
 import axios from 'axios';
 
@@ -34,7 +35,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
         businessPayload.user_id = userId;
       }
       const response = await axios.post(
-        `${API_URL}/business/`,
+        `${API_URL}/api/business/`,
         businessPayload
       );
       set({ isLoading: false, business: response.data });
@@ -52,7 +53,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.put(
-        `${API_URL}/business/${businessId}`,
+        `${API_URL}/api/business/${businessId}`,
         businessData
       );
       set({ isLoading: false });
@@ -69,7 +70,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.get(
-        `${API_URL}/business/${businessId}`
+        `${API_URL}/api/business/${businessId}`
         // { params: { user_id: userId } } // Uncomment if needed
       );
       set({ isLoading: false, business: response.data });
@@ -92,7 +93,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`${API_URL}/business/`, config);
+      const response = await axios.get(`${API_URL}/api/business/`, config);
       set({ isLoading: false, allBusiness: response.data.businesses });
       return response.data;
     } catch (error: any) {
@@ -112,7 +113,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
         },
       };
       const response = await axios.delete(
-        `${API_URL}/business/${businessId}`,
+        `${API_URL}/api/business/${businessId}`,
         config
       );
       set({ isLoading: false });

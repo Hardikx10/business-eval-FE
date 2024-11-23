@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { RiPencilFill } from 'react-icons/ri';
 import user from '../../assets/image.svg';
 import { CashflowChart } from '../../components/cashflow-chart/cashflow-chart';
@@ -11,8 +12,9 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CustomModal from '../../components/modal';
 import { jsPDF } from 'jspdf';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as XLSX from 'xlsx';
-
+import { PencilIcon } from '@heroicons/react/outline'; 
 function Dashboard() {
   const { fetchBusiness, updateBusiness, business, isLoading, error } =
     useBusinessStore();
@@ -299,6 +301,11 @@ function Dashboard() {
         generatePDF(reportData);
       }
     }
+  };
+
+  const handleEdit = () => {
+    // Your logic for enabling edit mode
+    alert('Edit mode activated!');
   };
 
   return (
@@ -696,6 +703,13 @@ function Dashboard() {
       </div>
     </div>
   );
+  
+  
+  
 }
 
 export default Dashboard;
+
+
+
+
