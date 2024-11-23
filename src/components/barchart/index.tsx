@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 // import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer, Legend, YAxis } from "recharts";
 

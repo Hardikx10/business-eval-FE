@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-const */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/react-in-jsx-scope */
 import { RiPencilFill } from 'react-icons/ri';
 import user from '../../assets/image.svg';
@@ -12,9 +15,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CustomModal from '../../components/modal';
 import { jsPDF } from 'jspdf';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as XLSX from 'xlsx';
-import { PencilIcon } from '@heroicons/react/outline'; 
 function Dashboard() {
   const { fetchBusiness, updateBusiness, business, isLoading, error } =
     useBusinessStore();

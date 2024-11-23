@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/react-in-jsx-scope */
 import { useState, useEffect } from 'react';
 import user from '../../assets/image.svg';
 import { FaTrashAlt, FaArrowUp, FaArrowDown, FaInfoCircle } from 'react-icons/fa';

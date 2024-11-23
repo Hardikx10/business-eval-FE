@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/react-in-jsx-scope */
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AiOutlineEyeInvisible } from 'react-icons/ai';

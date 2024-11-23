@@ -1,3 +1,4 @@
+/* eslint-disable react/react-in-jsx-scope */
 import { Area, AreaChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer, Legend, YAxis } from "recharts";
 
 interface CashflowData {

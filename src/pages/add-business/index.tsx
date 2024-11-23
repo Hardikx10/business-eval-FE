@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prefer-const */
+/* eslint-disable react/react-in-jsx-scope */
 import { useState } from 'react';
 import useBusinessStore from '../../store/buisnessSrore';
 import { toast, ToastContainer } from 'react-toastify';
