@@ -449,23 +449,54 @@ export default function BusinessMetrics() {
       setShowAllNotes(!showAllNotes);
     };
 
-    const reorder =(list ,startIndex, endIndex)=>{
-
+    const reorder = (list, startIndex, endIndex) => {
       const result = Array.from(list)
-      const [removed] = result.splice(startIndex,1)
-      result.splice(endIndex,0,removed)
-      return result;
-
+      const [removed] = result.splice(startIndex, 1)
+      result.splice(endIndex, 0, removed)
+      return result
     }
-
-    const onDragEnd = (result: DropResult) => {
-      if (!result.destination) return;
   
-      const reorderedItems:any = reorder(metricCards,result.source.index,result.destination.index)
-      console.log(reorder);
-      
-      setMetricCards(reorderedItems);
-    };
+    const onDragEnd = (result: DropResult) => {
+      if (!result.destination) return
+  
+      const sourceIndex = result.source.index
+      const destIndex = result.destination.index
+  
+      if (result.type === 'COLUMN') {
+        const newColumns = reorder(formData.custom_cards_columns, sourceIndex, destIndex)
+        setFormData(prevState => ({
+          ...prevState,
+          custom_cards_columns: newColumns
+        }))
+      } else {
+        const sourceColIndex = parseInt(result.source.droppableId.split('-')[1])
+        const destColIndex = parseInt(result.destination.droppableId.split('-')[1])
+  
+        const newColumns = Array.from(formData.custom_cards_columns)
+        const sourceCards = Array.from(newColumns[sourceColIndex].cards)
+        const destCards = sourceColIndex === destColIndex ? sourceCards : Array.from(newColumns[destColIndex].cards)
+  
+        const [removed] = sourceCards.splice(sourceIndex, 1)
+        destCards.splice(destIndex, 0, removed)
+  
+        newColumns[sourceColIndex] = {
+          ...newColumns[sourceColIndex],
+          cards: sourceCards
+        }
+  
+        if (sourceColIndex !== destColIndex) {
+          newColumns[destColIndex] = {
+            ...newColumns[destColIndex],
+            cards: destCards
+          }
+        }
+  
+        setFormData(prevState => ({
+          ...prevState,
+          custom_cards_columns: newColumns
+        }))
+      }
+    }
   const handleCardClick = (card: MetricCardData) => {
     setEditingCard(card);
   };
@@ -600,53 +631,67 @@ export default function BusinessMetrics() {
         </div>
 
         {/* Metrics Grid */}
-
-        <DragDropContext onDragEnd={onDragEnd}>
-          {business && <Droppable droppableId="metrics-grid">
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: '12px',
-                  padding: '12px',
-                  minHeight: '100px'
-                }}
-                className="bg-blue-50 rounded-lg"
-              >
-                {metricCards.map((card, index) => (
-                  <Draggable
-                     
-                    key={card.id} 
-                    draggableId={card.id} 
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="columns" type="COLUMN" direction="horizontal">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="flex flex-wrap gap-4 p-4"
+            >
+              {formData.custom_cards_columns.map((column, columnIndex) => (
+                <Draggable key={column.id} draggableId={column.id} index={columnIndex}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                    >
                       <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        style={{
-                          ...provided.draggableProps.style,
-                          opacity: snapshot.isDragging ? 0.8 : 1
-                        }}
+                        {...provided.dragHandleProps}
+                        className="bg-white p-2 rounded-lg shadow"
                       >
-                        <div {...provided.dragHandleProps} className="h-full">
-                          <MetricCard
-                            {...card}
-                            onClick={() => handleCardClick(card)}
-                          />
-                        </div>
+                        <h3 className="font-semibold mb-2">{column.title}</h3>
+                        <Droppable droppableId={`column-${columnIndex}`} type="CARD">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="space-y-2"
+                            >
+                              {column.cards.map((card, index) => (
+                                <Draggable key={card.id} draggableId={card.id} index={index}>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      style={{
+                                        ...provided.draggableProps.style,
+                                        opacity: snapshot.isDragging ? 0.5 : 1
+                                      }}
+                                    >
+                                      <MetricCard
+                                        {...card}
+                                        onClick={() => handleCardClick(card)}
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
                       </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>}
-        </DragDropContext>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
         <AddNewCard onClick={handleAddNewCard} />
       </div>
 
