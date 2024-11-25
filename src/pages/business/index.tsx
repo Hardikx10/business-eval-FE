@@ -549,24 +549,25 @@ export default function BusinessMetrics() {
                 </div>
               )}
               {formData.business_notes.length > 0 && (
-                <div className="w-full mt-1 text-right mr-20 ">
-                  
-                    {formData.business_notes.slice(0, showAllNotes ? undefined : 1).map((note, index) => (
-                      <li key={index} className="text-sm text-gray-600 pr-5">{note}</li>
-                    ))}
-                  
-                  {formData.business_notes.length > 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleShowAllNotes();
-                      }}
-                      style={{ fontSize: '0.65rem', lineHeight: '1.5rem' }} className="text-blue-500 hover:underline mt-0.5"
-                    >
-                      {showAllNotes ? "View less..." : "View more..."}
-                    </button>
-                  )}
-                </div>
+                <div className="w-full mt-2 text-left bg-gray-50 rounded-md p-2">
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">Notes:</h4>
+                <ul className="list-disc list-inside">
+                  {formData.business_notes.slice(0, showAllNotes ? undefined : 1).map((note, index) => (
+                    <li key={index} className="text-sm text-gray-600 mb-1 break-words">{note}</li>
+                  ))}
+                </ul>
+                {formData.business_notes.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleShowAllNotes();
+                    }}
+                    className="text-xs text-blue-500 hover:text-blue-700 hover:underline mt-1 focus:outline-none"
+                  >
+                    {showAllNotes ? "View less" : `View ${formData.business_notes.length - 1} more notes`}
+                  </button>
+                )}
+              </div>
               )}
             </div>
           </div>
