@@ -470,12 +470,23 @@ export default function BusinessMetrics() {
     setEditingCard(card);
   };
 
-  const handleCardSave = (newData: MetricCardData) => {
-    setMetricCards(prevCards =>
-      prevCards.map(card => (card.id === newData.id ? { ...card, ...newData } : card))
-    );
-    setEditingCard(null);
-  };
+  const handleCardSave = async (updatedCard: MetricCardData) => {
+    try {
+      const updatedCards = metricCards.map(card => 
+        card.id === updatedCard.id ? updatedCard : card
+      )
+      setMetricCards(updatedCards)
+      
+      // Update the business data on the server
+      await updateBusiness(id, { custom_cards_columns: formData.custom_cards_columns })
+      
+      toast.success('Metric updated successfully!')
+      setEditingCard(null)
+    } catch (error) {
+      toast.error('Failed to update metric. Please try again.')
+      console.error('Error updating metric:', error)
+    }
+  }
 
   const handleCardCancel = () => {
     setEditingCard(null);
@@ -576,19 +587,19 @@ export default function BusinessMetrics() {
                 </div>
               )}
               {formData.business_notes.length > 0 && (
-                <div className="w-full mt-6 text-left pl-2">
-                  <ul className="list-disc list-inside">
+                <div className="w-full mt-1 text-right mr-20 ">
+                  
                     {formData.business_notes.slice(0, showAllNotes ? undefined : 1).map((note, index) => (
-                      <li key={index} className="text-xs text-gray-600 mb-0.5">{note}</li>
+                      <li key={index} className="text-sm text-gray-600 pr-5">{note}</li>
                     ))}
-                  </ul>
+                  
                   {formData.business_notes.length > 1 && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleShowAllNotes();
                       }}
-                      className="text-blue-500 text-xs hover:underline mt-0.5"
+                      style={{ fontSize: '0.65rem', lineHeight: '1.5rem' }} className="text-blue-500 hover:underline mt-0.5"
                     >
                       {showAllNotes ? "View less..." : "View more..."}
                     </button>
@@ -650,7 +661,7 @@ export default function BusinessMetrics() {
         <AddNewCard onClick={handleAddNewCard} />
       </div>
 
-      {/* Edit Dialog */}
+      {/* Edit Business Dialog */}
       {isEditDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -658,7 +669,7 @@ export default function BusinessMetrics() {
             <form onSubmit={handleEditFormSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                     Name
                   </label>
                   <input
@@ -666,11 +677,11 @@ export default function BusinessMetrics() {
                     id="name"
                     value={formData.business_name}
                     onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
                     Location
                   </label>
                   <input
@@ -678,11 +689,11 @@ export default function BusinessMetrics() {
                     id="location"
                     value={formData.business_location}
                     onChange={(e) => setFormData({ ...formData, business_location: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
                     Website URL
                   </label>
                   <input
@@ -690,7 +701,7 @@ export default function BusinessMetrics() {
                     id="url"
                     value={formData.business_url}
                     onChange={(e) => setFormData({ ...formData, business_url: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -713,33 +724,20 @@ export default function BusinessMetrics() {
           </div>
         </div>
       )}
-
+      
       {/* Metric Card Edit Dialog */}
+        
       {editingCard && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">
-              {editingCard.id.startsWith('metric-') ? 'Add New Metric' : 'Edit Metric'}
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Edit {editingCard.name}</h2>
             <form onSubmit={(e) => {
-              e.preventDefault();
-              handleCardSave(editingCard);
+              e.preventDefault()
+              handleCardSave(editingCard)
             }}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                    Metric Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={editingCard.name}
-                    onChange={(e) => setEditingCard({ ...editingCard, name: e.target.value })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="value" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
                     Value
                   </label>
                   <input
@@ -747,27 +745,11 @@ export default function BusinessMetrics() {
                     id="value"
                     value={editingCard.value}
                     onChange={(e) => setEditingCard({ ...editingCard, value: parseFloat(e.target.value) || 0 })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label htmlFor="metricType" className="block text-sm font-medium text-gray-700">
-                    Metric Type
-                  </label>
-                  <select
-                    id="metricType"
-                    value={editingCard.metricType}
-                    onChange={(e) => setEditingCard({ ...editingCard, metricType: e.target.value as '$' | 'X' | 'N' | '%' })}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                  >
-                    <option value="$">$</option>
-                    <option value="X">X</option>
-                    <option value="N">N</option>
-                    <option value="%">%</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
                   </label>
                   <textarea
@@ -775,7 +757,7 @@ export default function BusinessMetrics() {
                     value={editingCard.notes.join('\n')}
                     onChange={(e) => setEditingCard({ ...editingCard, notes: e.target.value.split('\n') })}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
