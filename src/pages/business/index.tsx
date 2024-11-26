@@ -387,7 +387,7 @@ export default function BusinessMetrics() {
           
           if (card.id.startsWith('custom-')) {
             // Add all custom cards to custom_cards_columns, removing _id
-            const { _id, ...cardWithoutId } :any = card;
+            const { _id, ...cardWithoutId }:any = card;
             updatedFormData.custom_cards_columns.push(cardWithoutId);
           } else {
             // Handle non-custom cards
@@ -584,12 +584,12 @@ export default function BusinessMetrics() {
       // Recalculate dependent KPIs
       const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
 
-      // Update local state
+      // Update the backend first
+      await updateBusiness(id, cleanedFormData);
+
+      // If backend update is successful, update local state
       setMetricCards(recalculatedCards);
       setFormData(updatedFormData);
-
-      // Update the backend with cleaned data
-      await updateBusiness(id, cleanedFormData);
 
       toast.success('Custom metric deleted successfully');
     } catch (error) {
@@ -738,9 +738,14 @@ export default function BusinessMetrics() {
                     >
                       <div {...provided.dragHandleProps} className="h-full">
                         <MetricCard
-                          {...card}
+                          id={card.id}
+                          name={card.name}
+                          value={card.value}
+                          metricType={card.metricType}
+                          notes={card.notes}
+                          isIndependent={card.isIndependent}
                           onClick={() => handleCardClick(card)}
-                          onDelete={card.id.startsWith('custom-') ? () => handleDeleteCard(card.id) : undefined}
+                          onDelete={card.id && card.id.startsWith('custom-') ? () => handleDeleteCard(card.id) : undefined}
                         />
                       </div>
                     </div>
@@ -1013,7 +1018,7 @@ function MetricCard({
   }
 
   const { formattedValue, colorClasses } = formatValueAndColor()
-  const isCustomCard = id.startsWith('custom-');
+  const isCustomCard = id?.startsWith('custom-') ?? false;
 
   return (
     <div 
@@ -1026,8 +1031,7 @@ function MetricCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-              onDelete && onDelete();
+              onDelete?.();
             }}
             className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors duration-200"
             aria-label="Delete custom metric"
@@ -1036,7 +1040,7 @@ function MetricCard({
           </button>
         ) : (
           isIndependent ? (
-            <MessageSquare className="w-4 h-4 text-gray-400" /> // Placeholder to maintain layout
+            <MessageSquare className="w-4 h-4 text-gray-400" />
           ) : (
             <Lock className="w-4 h-4 text-gray-400" />
           )
@@ -1046,7 +1050,7 @@ function MetricCard({
         <span className={`text-base font-semibold ${colorClasses}`}>{formattedValue}</span>
       </div>
       {notes.length > 0 && (
-        <p className="text-xs pt-4 text-gray-600  truncate">{notes[0]}</p>
+        <p className="text-xs pt-4 text-gray-600 truncate">{notes[0]}</p>
       )}
     </div>
   ) 
