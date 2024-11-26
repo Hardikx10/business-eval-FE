@@ -4,9 +4,9 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { useNavigate, useParams } from 'react-router-dom';
 import useBusinessStore from '../../store/buisnessSrore';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock } from 'lucide-react'
+import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface MetricCardData {
@@ -48,7 +48,7 @@ interface FormData {
   total_debt_payments: { value: number; notes: string[] };
   projected_net_profit_margin: { value: number; notes: string[] };
   business_notes: string[];
-  custom_cards_columns: any[];
+  custom_cards_columns: MetricCardData[];
 }
 
 export default function BusinessMetrics() {
@@ -63,6 +63,15 @@ export default function BusinessMetrics() {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [metricCards, setMetricCards] = useState<MetricCardData[]>([]);
   const [editingCard, setEditingCard] = useState<MetricCardData | null>(null);
+  const [newCardData, setNewCardData] = useState<MetricCardData>({
+    id: '',
+    name: '',
+    value: 0,
+    metricType: '%',
+    notes: [],
+    isIndependent: true
+  });
+  const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
   const user_id = localStorage.getItem('user_id');
   const token = localStorage.getItem('token');
@@ -140,6 +149,7 @@ export default function BusinessMetrics() {
         total_debt_payments: data.total_debt_payments || { value: 0, notes: [] },
         projected_net_profit_margin: data.projected_net_profit_margin || { value: 0, notes: [] },
         business_notes: data.business_notes || [],
+        custom_cards_columns: data.custom_cards_columns || [],
       }
 
       setFormData(updatedFormData)
@@ -165,6 +175,7 @@ export default function BusinessMetrics() {
         { id: 'sba_loan_payment', name: 'SBA Loan Payment', value: updatedFormData.sba_loan_payment.value, metricType: '$', notes: updatedFormData.sba_loan_payment.notes, isIndependent: false },
         { id: 'total_debt_payments', name: 'Total Debt Payments', value: updatedFormData.total_debt_payments.value, metricType: '$', notes: updatedFormData.total_debt_payments.notes, isIndependent: false },
         { id: 'projected_net_profit_margin', name: 'Projected Net Profit Margin', value: updatedFormData.projected_net_profit_margin.value, metricType: '%', notes: updatedFormData.projected_net_profit_margin.notes, isIndependent: false },
+        ...updatedFormData.custom_cards_columns,
       ]
 
       setMetricCards(updatedMetricCards)
@@ -292,8 +303,7 @@ export default function BusinessMetrics() {
         const additionalLoanTerm = getCardValue('additional_loan_term')
         const additionalDebt = getCardValue('additional_debt')
         
-        console.log(askingPrice);
-        console.log(sdeValue);
+        
         
         
         // Calculate SBA Loan Payment
@@ -314,7 +324,7 @@ export default function BusinessMetrics() {
         const sdeMultiple = sdeValue > 0 ? askingPrice / sdeValue : 0
         const projectedNetProfitMargin = grossRevenue > 0 ? (projectedCashflow / grossRevenue) * 100 : 0
 
-        console.log(sdeMultiple);
+        // console.log(sdeMultiple);
         
         return cards.map(card => {
           switch (card.id) {
@@ -349,104 +359,124 @@ export default function BusinessMetrics() {
   
     const handleCardSave = async (updatedCard: MetricCardData) => {
       try {
+        setEditingCard(null);
+    
         const updatedCards = metricCards.map(card => 
           card.id === updatedCard.id ? updatedCard : card
-        )
-        const recalculatedCards = calculateDependentKPIs(updatedCards)
-        setMetricCards(recalculatedCards)
+        );
+        const recalculatedCards = calculateDependentKPIs(updatedCards);
+        setMetricCards(recalculatedCards);
        
         const updatedFormData = {
-          ...formData
-        }
-
+          ...formData,
+          custom_cards_columns: [] // Initialize custom_cards_columns
+        };
+    
         const parseNumber = (value: any): number => {
-          const parsed = parseFloat(value)
-          return isNaN(parsed) ? 0 : parsed
-        }
-
+          const parsed = parseFloat(value);
+          return isNaN(parsed) ? 0 : parsed;
+        };
+    
         recalculatedCards.forEach(card => {
-          const numericValue = parseNumber(card.value)
-          switch (card.id) {
-            case 'current_cashflow':
-              updatedFormData.current_cashflow = { value: numericValue, notes: card.notes };
-              break;
-            case 'expected_salary':
-              updatedFormData.expected_salary = { value: numericValue, notes: card.notes };
-              break;
-            case 'gross_revenue':
-              updatedFormData.gross_revenue = { value: numericValue, notes: card.notes };
-              break;
-            case 'growth_rate':
-              updatedFormData.growth_rate = { value: numericValue, notes: card.notes };
-              break;
-            case 'asking_price':
-              updatedFormData.asking_price = { value: numericValue, notes: card.notes };
-              break;
-            case 'sde_value':
-              updatedFormData.sde_value = { value: numericValue, notes: card.notes };
-              break;
-            case 'sba_loan_amount':
-              updatedFormData.loan_sba.amount = { value: numericValue, notes: card.notes };
-              break;
-            case 'sba_loan_rate':
-              updatedFormData.loan_sba.rate = { value: numericValue, notes: card.notes };
-              break;
-            case 'sba_loan_term':
-              updatedFormData.loan_sba.term = { value: numericValue, notes: card.notes };
-              break;
-            case 'additional_loan_amount':
-              updatedFormData.loan_additional.amount = { value: numericValue, notes: card.notes };
-              break;
-            case 'additional_loan_rate':
-              updatedFormData.loan_additional.rate = { value: numericValue, notes: card.notes };
-              break;
-            case 'additional_loan_term':
-              updatedFormData.loan_additional.term = { value: numericValue, notes: card.notes };
-              break;
-            case 'additional_debt':
-              updatedFormData.additional_debt = { value: numericValue, notes: card.notes };
-              break;
-            case 'dscr':
-              updatedFormData.dscr = { value: numericValue, notes: card.notes };
-              break;
-            case 'projected_cashflow':
-              updatedFormData.projected_cashflow = { value: numericValue, notes: card.notes };
-              break;
-            case 'gross_multiple':
-              updatedFormData.gross_multiple = { value: numericValue, notes: card.notes };
-              break;
-            case 'sde_multiple':
-              updatedFormData.sde_multiple = { value: numericValue, notes: card.notes };
-              break;
-            case 'sba_loan_payment':
-              updatedFormData.sba_loan_payment = { value: numericValue, notes: card.notes };
-              break;
-            case 'total_debt_payments':
-              updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };
-              break;
-            case 'projected_net_profit_margin':
-              updatedFormData.projected_net_profit_margin = { value: numericValue, notes: card.notes };
-              break;
+          if (!card || typeof card !== 'object' || !card.id) {
+            console.warn('Invalid card encountered:', card);
+            return; // Skip this iteration
           }
-        })
-      
-        setFormData(updatedFormData)
-        console.log('updated form data');
+    
+          const numericValue = parseNumber(card.value);
+          
+          if (card.id.startsWith('custom-')) {
+            // Add all custom cards to custom_cards_columns, removing _id
+            const { _id, ...cardWithoutId } :any = card;
+            updatedFormData.custom_cards_columns.push(cardWithoutId);
+          } else {
+            // Handle non-custom cards
+            switch (card.id) {
+              case 'current_cashflow':
+                updatedFormData.current_cashflow = { value: numericValue, notes: card.notes };
+                break;
+              case 'expected_salary':
+                updatedFormData.expected_salary = { value: numericValue, notes: card.notes };
+                break;
+              case 'gross_revenue':
+                updatedFormData.gross_revenue = { value: numericValue, notes: card.notes };
+                break;
+              case 'growth_rate':
+                updatedFormData.growth_rate = { value: numericValue, notes: card.notes };
+                break;
+              case 'asking_price':
+                updatedFormData.asking_price = { value: numericValue, notes: card.notes };
+                break;
+              case 'sde_value':
+                updatedFormData.sde_value = { value: numericValue, notes: card.notes };
+                break;
+              case 'sba_loan_amount':
+                updatedFormData.loan_sba.amount = { value: numericValue, notes: card.notes };
+                break;
+              case 'sba_loan_rate':
+                updatedFormData.loan_sba.rate = { value: numericValue, notes: card.notes };
+                break;
+              case 'sba_loan_term':
+                updatedFormData.loan_sba.term = { value: numericValue, notes: card.notes };
+                break;
+              case 'additional_loan_amount':
+                updatedFormData.loan_additional.amount = { value: numericValue, notes: card.notes };
+                break;
+              case 'additional_loan_rate':
+                updatedFormData.loan_additional.rate = { value: numericValue, notes: card.notes };
+                break;
+              case 'additional_loan_term':
+                updatedFormData.loan_additional.term = { value: numericValue, notes: card.notes };
+                break;
+              case 'additional_debt':
+                updatedFormData.additional_debt = { value: numericValue, notes: card.notes };
+                break;
+              case 'dscr':
+                updatedFormData.dscr = { value: numericValue, notes: card.notes };
+                break;
+              case 'projected_cashflow':
+                updatedFormData.projected_cashflow = { value: numericValue, notes: card.notes };
+                break;
+              case 'gross_multiple':
+                updatedFormData.gross_multiple = { value: numericValue, notes: card.notes };
+                break;
+              case 'sde_multiple':
+                updatedFormData.sde_multiple = { value: numericValue, notes: card.notes };
+                break;
+              case 'sba_loan_payment':
+                updatedFormData.sba_loan_payment = { value: numericValue, notes: card.notes };
+                break;
+              case 'total_debt_payments':
+                updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };
+                break;
+              case 'projected_net_profit_margin':
+                updatedFormData.projected_net_profit_margin = { value: numericValue, notes: card.notes };
+                break;
+              default:
+                console.warn('Unhandled non-custom card:', card.id);
+            }
+          }
+        });
+    
+        // Remove _id from the root level of updatedFormData
+        const { _id, ...formDataWithoutId }:any = updatedFormData;
+    
+        // Ensure custom_cards_columns doesn't have _id
+        formDataWithoutId.custom_cards_columns = formDataWithoutId.custom_cards_columns.map(({ _id, ...card }) => card);
+    
+        setFormData(formDataWithoutId);
+        console.log('Updated form data:', formDataWithoutId);
         
-        console.log(updatedFormData);
+        // Update the business data on the server with the entire formData, excluding _id
+        await updateBusiness(id, formDataWithoutId);
         
-        // Update the business data on the server with the entire formData
-        await updateBusiness(id, updatedFormData)
-        
-        toast.success('Metric updated successfully!')
-        setEditingCard(null)
+        toast.success('Metric updated successfully!');
+    
       } catch (error) {
-        toast.error('Failed to update metric. Please try again.')
-        console.error('Error updating metric:', error)
+        toast.error('Failed to update metric. Please try again.');
+        console.error('Error updating metric:', error);
       }
-    }
-    
-    
+    };
   
 
   const handleCardCancel = () => {
@@ -454,16 +484,121 @@ export default function BusinessMetrics() {
   };
 
   const handleAddNewCard = () => {
-    const newMetric: MetricCardData = {
-      id: `metric-${Date.now()}`,
-      name: 'New Metric',
-      value: 0,
-      metricType: 'N',
-      notes: [],
-      isIndependent:true
-    };
-    setEditingCard(newMetric);
+    setIsNewCardModalOpen(true);
   };
+
+  const handleNewCardInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewCardData(prev => ({
+      ...prev,
+      [name]: name === 'value' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleNewCardSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newMetric: MetricCardData = {
+      id: `custom-${Date.now()}`,
+      name: newCardData.name,
+      value: newCardData.value,
+      metricType: newCardData.metricType,
+      notes: newCardData.notes,
+      isIndependent: true
+    };
+
+    try {
+      const updatedMetricCards = [...metricCards, newMetric];
+      setMetricCards(updatedMetricCards);
+
+      // Create a new object without the 'id' field for the server update
+      const newMetricForServer = {
+        name: newMetric.name,
+        value: newMetric.value,
+        metricType: newMetric.metricType,
+        notes: newMetric.notes,
+        isIndependent: newMetric.isIndependent
+      };
+
+      const updatedFormData = {
+        ...formData,
+        custom_cards_columns: [...formData.custom_cards_columns, newMetricForServer]
+      };
+
+      // Remove any potential _id fields from the entire formData
+      const cleanedFormData = JSON.parse(JSON.stringify(updatedFormData, (key, value) => key === '_id' ? undefined : value));
+
+      setFormData(cleanedFormData);
+
+      // Update the business data on the server
+      await updateBusiness(id, cleanedFormData);
+
+      setIsNewCardModalOpen(false);
+      setNewCardData({
+        id: '',
+        name: '',
+        value: 0,
+        metricType: '%',
+        notes: [],
+        isIndependent: true
+      });
+      toast.success('New metric added successfully!');
+    } catch (error) {
+      toast.error('Failed to add new metric. Please try again.');
+      console.error('Error adding new metric:', error);
+    }
+  };
+
+  // Helper function to remove _id fields recursively
+  const removeIdField = (obj: any): any => {
+    if (Array.isArray(obj)) {
+      return obj.map(removeIdField);
+    } else if (obj !== null && typeof obj === 'object') {
+      const newObj: any = {};
+      for (const key in obj) {
+        if (key !== '_id') {
+          newObj[key] = removeIdField(obj[key]);
+        }
+      }
+      return newObj;
+    }
+    return obj;
+  };
+
+  const handleDeleteCard = useCallback(async (cardId: string) => {
+    try {
+      // Remove the card from metricCards state
+      const updatedMetricCards = metricCards.filter(card => card.id !== cardId);
+      
+      // Remove the card from formData.custom_cards_columns
+      const updatedCustomCards = formData.custom_cards_columns.filter(card => card.id !== cardId);
+      
+      // Create updated formData
+      const updatedFormData = {
+        ...formData,
+        custom_cards_columns: updatedCustomCards
+      };
+
+      // Remove _id field from the entire formData object
+      const cleanedFormData = removeIdField(updatedFormData);
+
+      // Recalculate dependent KPIs
+      const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
+
+      // Update local state
+      setMetricCards(recalculatedCards);
+      setFormData(updatedFormData);
+
+      // Update the backend with cleaned data
+      await updateBusiness(id, cleanedFormData);
+
+      toast.success('Custom metric deleted successfully');
+    } catch (error) {
+      console.error('Error deleting custom metric:', error);
+      toast.error('Failed to delete custom metric. Please try again.');
+    }
+  }, [metricCards, formData, id]);
+  
+  
 
   if (isLoading) {
     return(<div>Loading...</div>);
@@ -576,51 +711,47 @@ export default function BusinessMetrics() {
         {/* Metrics Grid */}
 
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="metrics-grid">
-            {(provided, snapshot) => (
-              <div
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                  gap: '12px',
-                  padding: '12px',
-                  minHeight: '100px'
-                }}
-                className="bg-blue-50 rounded-lg"
-              >
-                {metricCards.map((card, index) => (
-                  <Draggable
-                     
-                    key={card.id} 
-                    draggableId={card.id} 
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        style={{
-                          ...provided.draggableProps.style,
-                          opacity: snapshot.isDragging ? 0.8 : 1
-                        }}
-                      >
-                        <div {...provided.dragHandleProps} className="h-full">
-                          <MetricCard
-                            {...card}
-                            onClick={() => handleCardClick(card)}
-                          />
-                        </div>
+        <Droppable droppableId="metrics-grid">
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: '12px',
+                padding: '12px',
+                minHeight: '100px'
+              }}
+              className="bg-blue-50 rounded-lg"
+            >
+              {metricCards.map((card, index) => (
+                <Draggable key={card.id} draggableId={card.id} index={index}>
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      style={{
+                        ...provided.draggableProps.style,
+                        opacity: snapshot.isDragging ? 0.8 : 1
+                      }}
+                    >
+                      <div {...provided.dragHandleProps} className="h-full">
+                        <MetricCard
+                          {...card}
+                          onClick={() => handleCardClick(card)}
+                          onDelete={card.id.startsWith('custom-') ? () => handleDeleteCard(card.id) : undefined}
+                        />
                       </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
         <AddNewCard onClick={handleAddNewCard} />
       </div>
 
@@ -744,13 +875,106 @@ export default function BusinessMetrics() {
           </div>
         </div>
       )}
+
+
+      {/* New Metric Card Modal */}
+      {isNewCardModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-800">Add Financial Metric</h2>
+                <button
+                  onClick={() => setIsNewCardModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XIcon className="h-5 w-5" />
+                </button>
+              </div>
+              <form onSubmit={handleNewCardSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Name:
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={newCardData.name}
+                    onChange={handleNewCardInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
+                    Value:
+                  </label>
+                  <div className="flex">
+                    <input
+                      type="number"
+                      id="value"
+                      name="value"
+                      value={newCardData.value}
+                      onChange={handleNewCardInputChange}
+                      className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
+                    />
+                    <div className="relative">
+                      <select
+                        name="metricType"
+                        value={newCardData.metricType}
+                        onChange={handleNewCardInputChange}
+                        className="appearance-none bg-gray-100 border border-l-0 border-gray-300 rounded-r-md px-3 py-2 pr-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="%">%</option>
+                        <option value="$">$</option>
+                        <option value="X">X</option>
+                        <option value="N">N</option>
+                      </select>
+                      <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+                    Note:
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    value={newCardData.notes.join('\n')}
+                    onChange={(e) => setNewCardData({...newCardData, notes: e.target.value.split('\n')})}
+                    rows={4}
+                    placeholder="Add a note..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  ></textarea>
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Add
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 
-interface MetricCardProps extends MetricCardData {
+export interface MetricCardProps {
+  id: string;
+  name: string;
+  value: number;
+  metricType: '$' | 'X' | 'N' | '%';
+  notes: string[];
+  isIndependent: boolean;
   onClick: () => void;
+  onDelete?: () => Promise<void>;  // Add this line
 }
 
 function MetricCard({
@@ -761,6 +985,7 @@ function MetricCard({
   notes,
   isIndependent,
   onClick,
+  onDelete
 }: MetricCardProps) {
   const formatValueAndColor = () => {
     let formattedValue: string
@@ -788,6 +1013,7 @@ function MetricCard({
   }
 
   const { formattedValue, colorClasses } = formatValueAndColor()
+  const isCustomCard = id.startsWith('custom-');
 
   return (
     <div 
@@ -796,10 +1022,24 @@ function MetricCard({
     >
       <div className="flex justify-between items-start mb-1">
         <h3 className="text-xs font-medium text-gray-500 truncate">{name}</h3>
-        {isIndependent ? (
-          <MessageSquare className="w-4 h-4 text-gray-400" />
+        {isCustomCard ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+              onDelete && onDelete();
+            }}
+            className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors duration-200"
+            aria-label="Delete custom metric"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         ) : (
-          <Lock className="w-4 h-4 text-gray-400" />
+          isIndependent ? (
+            <MessageSquare className="w-4 h-4 text-gray-400" /> // Placeholder to maintain layout
+          ) : (
+            <Lock className="w-4 h-4 text-gray-400" />
+          )
         )}
       </div>
       <div className="flex items-center gap-1 mb-1">
