@@ -4,7 +4,7 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { useNavigate, useParams } from 'react-router-dom';
 import useBusinessStore from '../../store/buisnessSrore';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -52,11 +52,13 @@ interface FormData {
 }
 
 export default function BusinessMetrics() {
-  const { fetchBusiness, updateBusiness, business, isLoading, error } = useBusinessStore();
+  const { fetchBusiness, updateBusiness, business, isLoading, error , uploadFile } = useBusinessStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true)
   const { id } = useParams();
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [notes, setNotes] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showNotesTextarea, setShowNotesTextarea] = useState(false);
@@ -287,7 +289,7 @@ export default function BusinessMetrics() {
       if (!result.destination) return;
   
       const reorderedItems:any = reorder(metricCards,result.source.index,result.destination.index)
-      console.log(reorder);
+      // console.log(reorder);
       
       setMetricCards(reorderedItems);
     };
@@ -475,7 +477,7 @@ export default function BusinessMetrics() {
         formDataWithoutId.custom_cards_columns = formDataWithoutId.custom_cards_columns.map(({ _id, ...card }) => card);
     
         setFormData(formDataWithoutId);
-        console.log('Updated form data:', formDataWithoutId);
+        // console.log('Updated form data:', formDataWithoutId);
         
         // Update the business data on the server with the entire formData, excluding _id
         await updateBusiness(id, formDataWithoutId);
@@ -577,7 +579,7 @@ export default function BusinessMetrics() {
   const handleDeleteCard = useCallback(async (cardId: string) => {
     try {
 
-      console.log("inside handle delete");
+      // console.log("inside handle delete");
       
       // Remove the card from metricCards state
       const updatedMetricCards = metricCards.filter(card => card.id !== cardId);
@@ -593,9 +595,9 @@ export default function BusinessMetrics() {
 
       // Remove _id field from the entire formData object
       const cleanedFormData = removeIdField(updatedFormData);
-      console.log("cleaned form data");
+      // console.log("cleaned form data");
       
-      console.log(cleanedFormData);
+      // console.log(cleanedFormData);
       
       // Recalculate dependent KPIs
       const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
@@ -616,10 +618,31 @@ export default function BusinessMetrics() {
   
   
   
-  const handleAttachmentClick = () => {
-    console.log('Attachment icon clicked')
-    // We'll implement the attachment functionality in the next step
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    
+    const file = event.target.files?.[0]
+    if (file && id) {
+      setIsUploading(true)
+      try {
+        
+        
+        await uploadFile(id, file)
+        toast.success('File uploaded successfully!')
+        // Refresh business data to get updated attachments
+        await fetchBusiness(id)
+      } catch (error) {
+        console.error('File upload failed:', error)
+        toast.error('Failed to upload file. Please try again.')
+      } finally {
+        setIsUploading(false)
+      }
+    }
   }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
   if (isPageLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-blue-100">
@@ -666,9 +689,23 @@ export default function BusinessMetrics() {
                   <div className="flex items-center mt-0.5">
                     <LinkIcon className="w-3 h-3 text-blue-500 mr-1" />
                     <a href={formData.business_url} className="text-blue-500 text-xs hover:underline">{formData.business_url}</a>
-                    <div className="flex space-x-4 ml-3 ">
-              
-                        <Upload size={16} />
+                    <div className="flex space-x-4 ml-3">
+                      <button
+                        onClick={handleUploadClick}
+                        disabled={isUploading}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label="Upload file"
+                      >
+                        <Upload size={16} className={isUploading ? 'animate-pulse text-blue-300' : 'text-blue-500'} />
+                      </button>
+                      <input
+                        type="file"
+                        name='file'
+                        ref={fileInputRef}
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        aria-hidden="true"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1053,10 +1090,10 @@ function MetricCard({
   }
 
   const { formattedValue, colorClasses } = formatValueAndColor()
-  console.log(id);
+  
   
   const isCustomCard = id === undefined || id?.startsWith('custom') || false;
-  console.log(isCustomCard);
+ 
   
   
   

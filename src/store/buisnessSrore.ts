@@ -14,6 +14,7 @@ interface BusinessState {
   fetchBusiness: (businessId: string) => Promise<any>;
   fetchAllBusiness: () => Promise<any>;
   deleteBusiness: (businessId: string) => Promise<any>;
+  uploadFile: (businessId: string, file: File) => Promise<any>;
 }
 
 const useBusinessStore = create<BusinessState>((set) => ({
@@ -137,6 +138,34 @@ const useBusinessStore = create<BusinessState>((set) => ({
       throw new Error(errorMessage);
     }
   },
+
+  uploadFile : async (businessId:string, file : File) => {
+
+    set({ isLoading: true, error: null });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(
+        `${API_URL}/api/business/upload/${businessId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data', // Important for file uploads
+          },
+        }
+      );
+      set({ isLoading: false });
+      console.log(response.data);
+      
+      return response.data;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to upload file';
+      set({ isLoading: false, error: errorMessage });
+      throw new Error(errorMessage);
+    }    
+  }
 }));
 
 export default useBusinessStore;
