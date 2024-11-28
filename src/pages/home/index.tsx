@@ -111,9 +111,9 @@ export default function HomePage() {
           <h1 className="text-3xl font-bold text-gray-800">My Businesses</h1>
           <button
             onClick={handleAddBusiness}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-2 rounded-lg shadow-md transition duration-300 ease-in-out flex items-center"
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
+            <PlusIcon className="w-4 h-4 mr-1" />
             Add Business
           </button>
         </div>

@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useBusinessStore from '../../store/buisnessSrore';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2 } from 'lucide-react'
+import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2, X } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface MetricCardData {
@@ -74,11 +74,12 @@ export default function BusinessMetrics() {
     notes: [],
     isIndependent: true
   });
+  
   const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
   const user_id = localStorage.getItem('user_id');
   const token = localStorage.getItem('token');
-
+  const [isConsolidatedNotesOpen, setIsConsolidatedNotesOpen] = useState(false)
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
@@ -833,7 +834,45 @@ export default function BusinessMetrics() {
         </Droppable>
       </DragDropContext>
         <AddNewCard onClick={handleAddNewCard} />
+        {/* Consolidated Notes Button */}
+        <button
+          onClick={() => setIsConsolidatedNotesOpen(true)}
+          className="fixed bottom-4 right-4 text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-md shadow-lg transition duration-300 ease-in-out mb-1"
+        >
+          Notes
+        </button>
       </div>
+      
+      {/* Consolidated Notes Popup */}
+      {isConsolidatedNotesOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Consolidated Notes</h2>
+              <button
+                onClick={() => setIsConsolidatedNotesOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            {/* {consolidatedNotes.length > 0 ? (
+              consolidatedNotes.map((item, index) => (
+                <div key={index} className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <ul className="list-disc list-inside">
+                    {item.notes.map((note, noteIndex) => (
+                      <li key={noteIndex} className="text-gray-700">{note}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No notes available.</p>
+            )} */}
+          </div>
+        </div>
+      )}
 
       {/* Edit Business Dialog */}
       {isEditDialogOpen && (
