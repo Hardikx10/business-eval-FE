@@ -1039,12 +1039,12 @@ export default function BusinessMetrics() {
                       className="flex-grow px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                       required
                     />
-                    <div className="relative">
+                    <div className="relative mr-5">
                       <select
                         name="metricType"
                         value={newCardData.metricType}
                         onChange={handleNewCardInputChange}
-                        className="appearance-none bg-gray-100 border border-l-0 border-gray-300 rounded-r-md px-3 py-2 pr-8 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="appearance-none bg-gray-100 border border-l-0 border-gray-300 rounded-r-md px-3 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
                         <option value="%">%</option>
                         <option value="$">$</option>
