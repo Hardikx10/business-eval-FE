@@ -28,7 +28,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
       const userId = localStorage.getItem('user_id');
       const businessPayload = {
         ...businessData,
-        // user_id: userId,
+        user_id: userId,
       };
 
       if (userId) {
@@ -39,7 +39,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
         businessPayload
       );
       set({ isLoading: false, business: response.data });
-      return response.data;
+      return response.data.newBusiness;
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || 'Failed to add business';
@@ -73,10 +73,16 @@ const useBusinessStore = create<BusinessState>((set) => ({
   fetchBusiness: async (businessId: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(
-        `${API_URL}/api/business/${businessId}`
-        // { params: { user_id: userId } } // Uncomment if needed
-      );
+
+      const userId = localStorage.getItem('user_id');
+      if (!userId) throw new Error('User ID not found in local storage');
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const response = await axios.get(`${API_URL}/api/business/${businessId}`,config);
       set({ isLoading: false, business: response.data });
       return response.data;
     } catch (error: any) {
@@ -98,8 +104,10 @@ const useBusinessStore = create<BusinessState>((set) => ({
         },
       };
       const response = await axios.get(`${API_URL}/api/business/`, config);
-      set({ isLoading: false, allBusiness: response.data.businesses });
-      return response.data;
+      set({ isLoading: false, allBusiness: response.data.business.data });
+      
+      
+      return response.data.business.data;
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || 'Failed to fetch business details';

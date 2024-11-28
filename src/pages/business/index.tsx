@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useBusinessStore from '../../store/buisnessSrore';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2 } from 'lucide-react'
+import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface MetricCardData {
@@ -55,6 +55,7 @@ export default function BusinessMetrics() {
   const { fetchBusiness, updateBusiness, business, isLoading, error } = useBusinessStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const { id } = useParams();
   const [notes, setNotes] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -116,7 +117,9 @@ export default function BusinessMetrics() {
   }, [])
 
   useEffect(() => {
+    setIsPageLoading(true)
     if (business?.business?.data) {
+      
       const data = business.business.data
       const updatedFormData = {
         ...formData,
@@ -179,16 +182,20 @@ export default function BusinessMetrics() {
       ]
 
       setMetricCards(updatedMetricCards)
+      setIsPageLoading(false)
     }
   }, [business])
 
   useEffect(() => {
+    setIsPageLoading(true)
     if (id) {
       fetchBusiness(id);
+      setIsPageLoading(false)
     }
   }, [fetchBusiness, id]);
 
   useEffect(() => {
+    setIsPageLoading(true)
     if (error) {
       toast.error(`Error: ${error}`);
     }
@@ -347,10 +354,13 @@ export default function BusinessMetrics() {
           }
         })
       }
+      setIsPageLoading(false)
     }, [])
   
     useEffect(() => {
+      setIsPageLoading(true)
       setMetricCards(prevCards => calculateDependentKPIs(prevCards))
+      setIsPageLoading(false)
     }, [calculateDependentKPIs])
   
     const handleCardClick = (card: MetricCardData) => {
@@ -566,6 +576,9 @@ export default function BusinessMetrics() {
 
   const handleDeleteCard = useCallback(async (cardId: string) => {
     try {
+
+      console.log("inside handle delete");
+      
       // Remove the card from metricCards state
       const updatedMetricCards = metricCards.filter(card => card.id !== cardId);
       
@@ -580,7 +593,10 @@ export default function BusinessMetrics() {
 
       // Remove _id field from the entire formData object
       const cleanedFormData = removeIdField(updatedFormData);
-
+      console.log("cleaned form data");
+      
+      console.log(cleanedFormData);
+      
       // Recalculate dependent KPIs
       const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
 
@@ -599,9 +615,17 @@ export default function BusinessMetrics() {
   }, [metricCards, formData, id]);
   
   
-
-  if (isLoading) {
-    return(<div>Loading...</div>);
+  
+  const handleAttachmentClick = () => {
+    console.log('Attachment icon clicked')
+    // We'll implement the attachment functionality in the next step
+  }
+  if (isPageLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-blue-100">
+        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -614,6 +638,7 @@ export default function BusinessMetrics() {
         <h1 className="text-blue-600 font-medium">
           {formData.business_name}
         </h1>
+        
         <button className="p-2 hover:bg-gray-100 rounded-lg">
           <Copy className="w-5 h-5 text-blue-500" />
         </button>
@@ -632,12 +657,19 @@ export default function BusinessMetrics() {
               <div className="flex justify-between items-start mb-1">
                 <div>
                   <h2 className="text-base text-xl font-semibold">
-                    {formData.business_name}
+                    {formData.business_name} 
                   </h2>
+
+                  
+                  
                   <p className="text-gray-500 text-xs">{formData.business_location}</p>
                   <div className="flex items-center mt-0.5">
                     <LinkIcon className="w-3 h-3 text-blue-500 mr-1" />
                     <a href={formData.business_url} className="text-blue-500 text-xs hover:underline">{formData.business_url}</a>
+                    <div className="flex space-x-4 ml-3 ">
+              
+                        <Upload size={16} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -650,6 +682,9 @@ export default function BusinessMetrics() {
               
               <div className="flex items-center text-xs text-gray-500">
                 <span>Updated 2 hours ago</span>
+              </div>
+              <div> 
+             
               </div>
             </div>
 
@@ -745,7 +780,7 @@ export default function BusinessMetrics() {
                           notes={card.notes}
                           isIndependent={card.isIndependent}
                           onClick={() => handleCardClick(card)}
-                          onDelete={card.id && card.id.startsWith('custom-') ? () => handleDeleteCard(card.id) : undefined}
+                          onDelete={() => handleDeleteCard(card.id)}
                         />
                       </div>
                     </div>
@@ -979,7 +1014,7 @@ export interface MetricCardProps {
   notes: string[];
   isIndependent: boolean;
   onClick: () => void;
-  onDelete?: () => Promise<void>;  // Add this line
+  onDelete?: () => void;  // Add this line
 }
 
 function MetricCard({
@@ -1018,7 +1053,13 @@ function MetricCard({
   }
 
   const { formattedValue, colorClasses } = formatValueAndColor()
-  const isCustomCard = id?.startsWith('custom-') ?? false;
+  console.log(id);
+  
+  const isCustomCard = id === undefined || id?.startsWith('custom') || false;
+  console.log(isCustomCard);
+  
+  
+  
 
   return (
     <div 
@@ -1031,7 +1072,8 @@ function MetricCard({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete?.();
+              onDelete();
+              
             }}
             className="p-1 hover:bg-red-100 rounded-full text-red-500 transition-colors duration-200"
             aria-label="Delete custom metric"
