@@ -52,7 +52,7 @@ interface FormData {
 }
 
 export default function BusinessMetrics() {
-  const { fetchBusiness, updateBusiness, business, isLoading, error , uploadFile } = useBusinessStore();
+  const { fetchBusiness, updateBusiness, business,error , uploadFile } = useBusinessStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true)
@@ -237,6 +237,8 @@ export default function BusinessMetrics() {
   };
 
   const handleEditDialogOpen = () => {
+    
+
     setIsEditDialogOpen(true);
   };
 
@@ -245,7 +247,6 @@ export default function BusinessMetrics() {
   };
 
   const handleEditFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    
     e.preventDefault();
     try {
       const updatedData = {
@@ -356,7 +357,7 @@ export default function BusinessMetrics() {
           }
         })
       }
-      setIsPageLoading(false)
+     
     }, [])
   
     useEffect(() => {
@@ -619,7 +620,7 @@ export default function BusinessMetrics() {
   
   
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    
+    event.stopPropagation()
     const file = event.target.files?.[0]
     if (file && id) {
       setIsUploading(true)
@@ -639,7 +640,10 @@ export default function BusinessMetrics() {
     }
   }
 
-  const handleUploadClick = () => {
+  
+  const handleUploadClick = (event: React.MouseEvent) => {
+    event.stopPropagation()
+    event.preventDefault()
     fileInputRef.current?.click()
   }
 
@@ -683,8 +687,6 @@ export default function BusinessMetrics() {
                     {formData.business_name} 
                   </h2>
 
-                  
-                  
                   <p className="text-gray-500 text-xs">{formData.business_location}</p>
                   <div className="flex items-center mt-0.5">
                     <LinkIcon className="w-3 h-3 text-blue-500 mr-1" />
@@ -705,6 +707,7 @@ export default function BusinessMetrics() {
                         onChange={handleFileUpload}
                         className="hidden"
                         aria-hidden="true"
+                        onClick={(e) => e.stopPropagation()}
                       />
                     </div>
                   </div>
