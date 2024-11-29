@@ -49,6 +49,7 @@ interface FormData {
   projected_net_profit_margin: { value: number; notes: string[] };
   business_notes: string[];
   custom_cards_columns: MetricCardData[];
+  cards_order: string[]
 }
 
 export default function BusinessMetrics() {
@@ -74,6 +75,8 @@ export default function BusinessMetrics() {
     notes: [],
     isIndependent: true
   });
+
+  const [cardsOrder, setCardsOrder] = useState<string[]>([]) // to keep track of the cards position
   
   const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
@@ -113,6 +116,7 @@ export default function BusinessMetrics() {
     projected_net_profit_margin: { value: 0, notes: [] },
     business_notes: [],
     custom_cards_columns: [],
+    cards_order:[]
   });
 
   useEffect(() => {
@@ -156,9 +160,16 @@ export default function BusinessMetrics() {
         projected_net_profit_margin: data.projected_net_profit_margin || { value: 0, notes: [] },
         business_notes: data.business_notes || [],
         custom_cards_columns: data.custom_cards_columns || [],
+        cards_order : data.cards_order || ['current_cashflow','expected_salary','gross_revenue','growth_rate', 'asking_price', 'sde_value', 'sba_loan_amount', 'sba_loan_rate','sba_loan_term',
+          'additional_loan_amount','additional_loan_rate','additional_loan_term','additional_debt', 'dscr',
+          'projected_cashflow', 'gross_multiple', 'sde_multiple', 'sba_loan_payment', 'total_debt_payments',
+          'projected_net_profit_margin'
+        ]
       }
 
       setFormData(updatedFormData)
+
+      setCardsOrder(updatedFormData.cards_order)
 
       const updatedMetricCards: MetricCardData[] = [
         { id: 'current_cashflow', name: 'Current Cashflow', value: updatedFormData.current_cashflow.value, metricType: '$', notes: updatedFormData.current_cashflow.notes, isIndependent: true },
@@ -287,14 +298,33 @@ export default function BusinessMetrics() {
 
     }
 
-    const onDragEnd = (result: DropResult) => {
-      if (!result.destination) return;
-  
-      const reorderedItems:any = reorder(metricCards,result.source.index,result.destination.index)
-      // console.log(reorder);
-      
-      setMetricCards(reorderedItems);
+  // Update the onDragEnd function
+  const onDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const newOrder = Array.from(cardsOrder);
+    const [reorderedItem] = newOrder.splice(result.source.index, 1);
+    newOrder.splice(result.destination.index, 0, reorderedItem);
+
+    setCardsOrder(newOrder);
+
+    // Update the formData with the new order
+    const updatedFormData = {
+      ...formData,
+      cards_order: newOrder
     };
+
+    setFormData(updatedFormData);
+
+    try {
+      // Update the server with the new order
+      await updateBusiness(id, { cards_order: newOrder });
+      toast.success('Card order updated successfully!');
+    } catch (error) {
+      console.error('Error updating card order:', error);
+      toast.error('Failed to update card order. Please try again.');
+    }
+  };
 
     const calculateDependentKPIs = useMemo(() => {
       return (cards: MetricCardData[]) => {
@@ -836,7 +866,10 @@ export default function BusinessMetrics() {
         <AddNewCard onClick={handleAddNewCard} />
         {/* Consolidated Notes Button */}
         <button
-          onClick={() => setIsConsolidatedNotesOpen(true)}
+          onClick={() => {setIsConsolidatedNotesOpen(true)
+            console.log(metricCards);
+            
+          }}
           className="fixed bottom-4 right-4 text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-md shadow-lg transition duration-300 ease-in-out mb-1"
         >
           Notes
@@ -856,10 +889,10 @@ export default function BusinessMetrics() {
                 <X size={24} />
               </button>
             </div>
-            {/* {consolidatedNotes.length > 0 ? (
-              consolidatedNotes.map((item, index) => (
+            {metricCards.length > 0 ? (
+              metricCards.map((item, index) => (
                 <div key={index} className="mb-4">
-                  <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
+                  <h3 className="text-lg font-semibold mb-2">{item.name}</h3>
                   <ul className="list-disc list-inside">
                     {item.notes.map((note, noteIndex) => (
                       <li key={noteIndex} className="text-gray-700">{note}</li>
@@ -869,7 +902,7 @@ export default function BusinessMetrics() {
               ))
             ) : (
               <p className="text-gray-500">No notes available.</p>
-            )} */}
+            )}
           </div>
         </div>
       )}
