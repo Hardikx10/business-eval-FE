@@ -126,7 +126,14 @@ export default function BusinessMetrics() {
   useEffect(() => {
     setIsPageLoading(true)
     if (business?.business?.data) {
-      
+      const defaultCardsOrder = [
+        'current_cashflow', 'expected_salary', 'gross_revenue', 'growth_rate', 
+        'asking_price', 'sde_value', 'sba_loan_amount', 'sba_loan_rate', 'sba_loan_term',
+        'additional_loan_amount', 'additional_loan_rate', 'additional_loan_term',
+        'additional_debt', 'dscr', 'projected_cashflow', 'gross_multiple', 
+        'sde_multiple', 'sba_loan_payment', 'total_debt_payments',
+        'projected_net_profit_margin'
+      ]
       const data = business.business.data
       const updatedFormData = {
         ...formData,
@@ -160,11 +167,9 @@ export default function BusinessMetrics() {
         projected_net_profit_margin: data.projected_net_profit_margin || { value: 0, notes: [] },
         business_notes: data.business_notes || [],
         custom_cards_columns: data.custom_cards_columns || [],
-        cards_order : data.cards_order || ['current_cashflow','expected_salary','gross_revenue','growth_rate', 'asking_price', 'sde_value', 'sba_loan_amount', 'sba_loan_rate','sba_loan_term',
-          'additional_loan_amount','additional_loan_rate','additional_loan_term','additional_debt', 'dscr',
-          'projected_cashflow', 'gross_multiple', 'sde_multiple', 'sba_loan_payment', 'total_debt_payments',
-          'projected_net_profit_margin'
-        ]
+        cards_order: (data.cards_order && data.cards_order.length > 1) 
+        ? data.cards_order 
+        : defaultCardsOrder
       }
 
       setFormData(updatedFormData)
@@ -196,6 +201,8 @@ export default function BusinessMetrics() {
       ]
 
       setMetricCards(updatedMetricCards)
+      console.log(formData);
+      
       setIsPageLoading(false)
     }
   }, [business])
@@ -204,6 +211,8 @@ export default function BusinessMetrics() {
     setIsPageLoading(true)
     if (id) {
       fetchBusiness(id);
+      
+      
       setIsPageLoading(false)
     }
   }, [fetchBusiness, id]);
@@ -298,13 +307,30 @@ export default function BusinessMetrics() {
 
     }
 
-    const onDragEnd = (result: DropResult) => {
+    const onDragEnd = async (result: DropResult) => {
       if (!result.destination) return;
   
-      const reorderedItems:any = reorder(metricCards,result.source.index,result.destination.index)
-      // console.log(reorder);
+      const newOrder = Array.from(cardsOrder);
+      const [reorderedItem] = newOrder.splice(result.source.index, 1);
+      newOrder.splice(result.destination.index, 0, reorderedItem);
+      console.log(newOrder);
       
-      setMetricCards(reorderedItems);
+      setCardsOrder(newOrder);
+  
+      const updatedFormData = {
+        ...formData,
+        cards_order: newOrder
+      };
+  
+      setFormData(updatedFormData);
+  
+      try {
+        await updateBusiness(id, { cards_order: newOrder });
+        toast.success('Card order updated successfully!');
+      } catch (error) {
+        console.error('Error updating card order:', error);
+        toast.error('Failed to update card order. Please try again.');
+      }
     };
 
     const calculateDependentKPIs = useMemo(() => {
@@ -835,9 +861,8 @@ export default function BusinessMetrics() {
           </div>
         </div>
 
-        {/* Metrics Grid */}
-
-        <DragDropContext onDragEnd={onDragEnd}>
+       {/* Metrics Grid */}
+       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="metrics-grid">
           {(provided, snapshot) => (
             <div
@@ -852,33 +877,37 @@ export default function BusinessMetrics() {
               }}
               className="bg-blue-50 rounded-lg"
             >
-              {metricCards.map((card, index) => (
-                <Draggable key={card.id} draggableId={card.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      style={{
-                        ...provided.draggableProps.style,
-                        opacity: snapshot.isDragging ? 0.8 : 1
-                      }}
-                    >
-                      <div {...provided.dragHandleProps} className="h-full">
-                        <MetricCard
-                          id={card.id}
-                          name={card.name}
-                          value={card.value}
-                          metricType={card.metricType}
-                          notes={card.notes}
-                          isIndependent={card.isIndependent}
-                          onClick={() => handleCardClick(card)}
-                          onDelete={() => handleDeleteCard(card.id)}
-                        />
+              {cardsOrder.map((cardId, index) => {
+                const card = metricCards.find(c => c.id === cardId);
+                if (!card) return null;
+                return (
+                  <Draggable key={card.id} draggableId={card.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        style={{
+                          ...provided.draggableProps.style,
+                          opacity: snapshot.isDragging ? 0.8 : 1
+                        }}
+                      >
+                        <div {...provided.dragHandleProps} className="h-full">
+                          <MetricCard
+                            id={card.id}
+                            name={card.name}
+                            value={card.value}
+                            metricType={card.metricType}
+                            notes={card.notes}
+                            isIndependent={card.isIndependent}
+                            onClick={() => handleCardClick(card)}
+                            onDelete={() => handleDeleteCard(card.id)}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+                    )}
+                  </Draggable>
+                );
+              })}
               {provided.placeholder}
             </div>
           )}
