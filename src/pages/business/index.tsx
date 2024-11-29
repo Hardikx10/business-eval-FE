@@ -298,33 +298,14 @@ export default function BusinessMetrics() {
 
     }
 
-  // Update the onDragEnd function
-  const onDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-
-    const newOrder = Array.from(cardsOrder);
-    const [reorderedItem] = newOrder.splice(result.source.index, 1);
-    newOrder.splice(result.destination.index, 0, reorderedItem);
-
-    setCardsOrder(newOrder);
-
-    // Update the formData with the new order
-    const updatedFormData = {
-      ...formData,
-      cards_order: newOrder
+    const onDragEnd = (result: DropResult) => {
+      if (!result.destination) return;
+  
+      const reorderedItems:any = reorder(metricCards,result.source.index,result.destination.index)
+      // console.log(reorder);
+      
+      setMetricCards(reorderedItems);
     };
-
-    setFormData(updatedFormData);
-
-    try {
-      // Update the server with the new order
-      await updateBusiness(id, { cards_order: newOrder });
-      toast.success('Card order updated successfully!');
-    } catch (error) {
-      console.error('Error updating card order:', error);
-      toast.error('Failed to update card order. Please try again.');
-    }
-  };
 
     const calculateDependentKPIs = useMemo(() => {
       return (cards: MetricCardData[]) => {
