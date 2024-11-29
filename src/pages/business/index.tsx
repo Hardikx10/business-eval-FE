@@ -6,7 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useBusinessStore from '../../store/buisnessSrore';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2, X } from 'lucide-react'
+import { Copy, Grid, Plus, PenSquare, LinkIcon, MessageSquare, Lock, ChevronDownIcon, XIcon, Trash2, Paperclip, FilePlus, Upload, Loader2, X, ArrowLeft } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 interface MetricCardData {
@@ -75,9 +75,9 @@ export default function BusinessMetrics() {
     notes: [],
     isIndependent: true
   });
-
+  const modalRef = useRef<HTMLDivElement>(null)
   const [cardsOrder, setCardsOrder] = useState<string[]>([]) // to keep track of the cards position
-  
+  const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false)
   const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
   const user_id = localStorage.getItem('user_id');
@@ -671,17 +671,57 @@ export default function BusinessMetrics() {
     <div className="min-h-screen bg-blue-100">
       {/* Top Navigation */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-        <button className="p-2 hover:bg-gray-100 rounded-lg">
-          <Grid className="w-5 h-5 text-blue-500" />
+        <button onClick={()=>{navigate('/home')}} className="p-2 hover:bg-gray-100 rounded-lg">
+          <ArrowLeft className="w-5 h-5 text-blue-500" />
         </button>
         <h1 className="text-blue-600 font-medium">
           {formData.business_name}
         </h1>
         
-        <button className="p-2 hover:bg-gray-100 rounded-lg">
-          <Copy className="w-5 h-5 text-blue-500" />
+        <button onClick={()=>{setIsAttachmentsOpen(true)}} className="p-2 hover:bg-gray-100 rounded-lg">
+          <Paperclip className="w-5 h-5 text-blue-500" />
         </button>
       </div>
+
+      {isAttachmentsOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div ref={modalRef} className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="flex justify-between items-center border-b p-4">
+              <h2 className="text-xl font-semibold">Attachments</h2>
+              <button
+                onClick={()=>{setIsAttachmentsOpen(false)}}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-4 max-h-96 overflow-y-auto">
+              {formData.business_attachments.length > 0 ? (
+                formData.business_attachments.map((attachment, index) => (
+                  <div key={index} className="flex items-center justify-between py-2">
+                    <a
+                      href={attachment}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline truncate max-w-[60%]"
+                    >
+                      {attachment}
+                    </a>
+                    <button
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                      onClick={() => window.open(attachment, '_blank')}
+                    >
+                      {attachment.split('/').pop().split('-').pop().split('.')[0]}
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No attachments available.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="p-4 -mt-2"> {/* Moved up by adding negative top margin */}
@@ -856,6 +896,7 @@ export default function BusinessMetrics() {
           Notes
         </button>
       </div>
+      
       
       {/* Consolidated Notes Popup */}
       {isConsolidatedNotesOpen && (
