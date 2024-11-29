@@ -547,6 +547,7 @@ export default function BusinessMetrics() {
   };
 
   const handleNewCardSubmit = async (e: React.FormEvent) => {
+
     e.preventDefault();
     const newMetric: MetricCardData = {
       id: `custom-${Date.now()}`,
@@ -560,7 +561,8 @@ export default function BusinessMetrics() {
     try {
       const updatedMetricCards = [...metricCards, newMetric];
       setMetricCards(updatedMetricCards);
-
+      const updatedCardsOrder = [...cardsOrder,newMetric.id]
+      setCardsOrder(updatedCardsOrder);
       // Create a new object without the 'id' field for the server update
       const newMetricForServer = {
         name: newMetric.name,
@@ -572,7 +574,8 @@ export default function BusinessMetrics() {
 
       const updatedFormData = {
         ...formData,
-        custom_cards_columns: [...formData.custom_cards_columns, newMetricForServer]
+        custom_cards_columns: [...formData.custom_cards_columns, newMetricForServer],
+        cards_order: updatedCardsOrder
       };
 
       // Remove any potential _id fields from the entire formData
@@ -622,14 +625,16 @@ export default function BusinessMetrics() {
       
       // Remove the card from metricCards state
       const updatedMetricCards = metricCards.filter(card => card.id !== cardId);
-      
+      const updatedCardsOrder = cardsOrder.filter(id => id !== cardId);
+      setCardsOrder(updatedCardsOrder);
       // Remove the card from formData.custom_cards_columns
       const updatedCustomCards = formData.custom_cards_columns.filter(card => card.id !== cardId);
       
       // Create updated formData
       const updatedFormData = {
         ...formData,
-        custom_cards_columns: updatedCustomCards
+        custom_cards_columns: updatedCustomCards,
+        cards_order: updatedCardsOrder
       };
 
       // Remove _id field from the entire formData object
