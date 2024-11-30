@@ -16,6 +16,7 @@ interface MetricCardData {
   metricType: '$' | 'X' | 'N' | '%';
   notes: string[];
   isIndependent: boolean;
+  editableVariables?:string[]
 }
 
 interface FormData {
@@ -45,6 +46,7 @@ interface FormData {
   gross_multiple: { value: number; notes: string[] };
   sde_multiple: { value: number; notes: string[] };
   sba_loan_payment: { value: number; notes: string[] };
+  additional_loan_payment: {value: number; notes:string[] };
   total_debt_payments: { value: number; notes: string[] };
   projected_net_profit_margin: { value: number; notes: string[] };
   business_notes: string[];
@@ -112,6 +114,7 @@ export default function BusinessMetrics() {
     gross_multiple: { value: 0, notes: [] },
     sde_multiple: { value: 0, notes: [] },
     sba_loan_payment: { value: 0, notes: [] },
+    additional_loan_payment:{ value:0, notes:[]},
     total_debt_payments: { value: 0, notes: [] },
     projected_net_profit_margin: { value: 0, notes: [] },
     business_notes: [],
@@ -131,7 +134,7 @@ export default function BusinessMetrics() {
         'asking_price', 'sde_value', 'sba_loan_amount', 'sba_loan_rate', 'sba_loan_term',
         'additional_loan_amount', 'additional_loan_rate', 'additional_loan_term',
         'additional_debt', 'dscr', 'projected_cashflow', 'gross_multiple', 
-        'sde_multiple', 'sba_loan_payment', 'total_debt_payments',
+        'sde_multiple', 'sba_loan_payment','additional_loan_payment','total_debt_payments',
         'projected_net_profit_margin'
       ]
       const data = business.business.data
@@ -163,6 +166,7 @@ export default function BusinessMetrics() {
         gross_multiple: data.gross_multiple || { value: 0, notes: [] },
         sde_multiple: data.sde_multiple || { value: 0, notes: [] },
         sba_loan_payment: data.sba_loan_payment || { value: 0, notes: [] },
+        additional_loan_payment: data.additional_loan_payment || { value: 0, notes: [] },
         total_debt_payments: data.total_debt_payments || { value: 0, notes: [] },
         projected_net_profit_margin: data.projected_net_profit_margin || { value: 0, notes: [] },
         business_notes: data.business_notes || [],
@@ -177,12 +181,12 @@ export default function BusinessMetrics() {
       setCardsOrder(updatedFormData.cards_order)
 
       const updatedMetricCards: MetricCardData[] = [
-        { id: 'current_cashflow', name: 'Current Cashflow', value: updatedFormData.current_cashflow.value, metricType: '$', notes: updatedFormData.current_cashflow.notes, isIndependent: true },
-        { id: 'expected_salary', name: 'Expected Salary', value: updatedFormData.expected_salary.value, metricType: '$', notes: updatedFormData.expected_salary.notes, isIndependent: true },
-        { id: 'gross_revenue', name: 'Gross Revenue', value: updatedFormData.gross_revenue.value, metricType: '$', notes: updatedFormData.gross_revenue.notes, isIndependent: true },
+        { id: 'current_cashflow', name: 'Current Cashflow', value: updatedFormData.current_cashflow.value, metricType: '$', notes: updatedFormData.current_cashflow.notes, isIndependent: true , editableVariables:['current_cashflow']},
+        { id: 'expected_salary', name: 'Expected Salary', value: updatedFormData.expected_salary.value, metricType: '$', notes: updatedFormData.expected_salary.notes, isIndependent: true, editableVariables:['expected_salary'] },
+        { id: 'gross_revenue', name: 'Gross Revenue', value: updatedFormData.gross_revenue.value, metricType: '$', notes: updatedFormData.gross_revenue.notes, isIndependent: true , editableVariables:['gross_revenue'] },
         { id: 'growth_rate', name: 'Growth Rate', value: updatedFormData.growth_rate.value, metricType: '%', notes: updatedFormData.growth_rate.notes, isIndependent: true },
-        { id: 'asking_price', name: 'Asking Price', value: updatedFormData.asking_price.value, metricType: '$', notes: updatedFormData.asking_price.notes, isIndependent: true },
-        { id: 'sde_value', name: 'SDE Value', value: updatedFormData.sde_value.value, metricType: '$', notes: updatedFormData.sde_value.notes, isIndependent: true },
+        { id: 'asking_price', name: 'Asking Price', value: updatedFormData.asking_price.value, metricType: '$', notes: updatedFormData.asking_price.notes, isIndependent: true, editableVariables:['asking_price'] },
+        { id: 'sde_value', name: 'SDE Value', value: updatedFormData.sde_value.value, metricType: '$', notes: updatedFormData.sde_value.notes, isIndependent: true, editableVariables:['sde_value'] },
         { id: 'sba_loan_amount', name: 'SBA Loan Amount', value: updatedFormData.loan_sba.amount.value, metricType: '$', notes: updatedFormData.loan_sba.amount.notes, isIndependent: true },
         { id: 'sba_loan_rate', name: 'SBA Loan Rate', value: updatedFormData.loan_sba.rate.value, metricType: '%', notes: updatedFormData.loan_sba.rate.notes, isIndependent: true },
         { id: 'sba_loan_term', name: 'SBA Loan Term', value: updatedFormData.loan_sba.term.value, metricType: 'N', notes: updatedFormData.loan_sba.term.notes, isIndependent: true },
@@ -190,13 +194,14 @@ export default function BusinessMetrics() {
         { id: 'additional_loan_rate', name: 'Additional Loan Rate', value: updatedFormData.loan_additional.rate.value, metricType: '%', notes: updatedFormData.loan_additional.rate.notes, isIndependent: true },
         { id: 'additional_loan_term', name: 'Additional Loan Term', value: updatedFormData.loan_additional.term.value, metricType: 'N', notes: updatedFormData.loan_additional.term.notes, isIndependent: true },
         { id: 'additional_debt', name: 'Additional Debt', value: updatedFormData.additional_debt.value, metricType: '$', notes: updatedFormData.additional_debt.notes, isIndependent: true },
-        { id: 'dscr', name: 'DSCR', value: updatedFormData.dscr.value, metricType: 'N', notes: updatedFormData.dscr.notes, isIndependent: false },
-        { id: 'projected_cashflow', name: 'Projected Cashflow', value: updatedFormData.projected_cashflow.value, metricType: '$', notes: updatedFormData.projected_cashflow.notes, isIndependent: false },
-        { id: 'gross_multiple', name: 'Gross Multiple', value: updatedFormData.gross_multiple.value, metricType: 'X', notes: updatedFormData.gross_multiple.notes, isIndependent: false },
-        { id: 'sde_multiple', name: 'SDE Multiple', value: updatedFormData.sde_multiple.value, metricType: 'X', notes: updatedFormData.sde_multiple.notes, isIndependent: false },
-        { id: 'sba_loan_payment', name: 'SBA Loan Payment', value: updatedFormData.sba_loan_payment.value, metricType: '$', notes: updatedFormData.sba_loan_payment.notes, isIndependent: false },
-        { id: 'total_debt_payments', name: 'Total Debt Payments', value: updatedFormData.total_debt_payments.value, metricType: '$', notes: updatedFormData.total_debt_payments.notes, isIndependent: false },
-        { id: 'projected_net_profit_margin', name: 'Projected Net Profit Margin', value: updatedFormData.projected_net_profit_margin.value, metricType: '%', notes: updatedFormData.projected_net_profit_margin.notes, isIndependent: false },
+        { id: 'dscr', name: 'DSCR', value: updatedFormData.dscr.value, metricType: 'N', notes: updatedFormData.dscr.notes, isIndependent: false ,editableVariables:['dscr','current_cashflow','expected_salary','total_debt_payments']},
+        { id: 'projected_cashflow', name: 'Projected Cashflow', value: updatedFormData.projected_cashflow.value, metricType: '$', notes: updatedFormData.projected_cashflow.notes, isIndependent: false, editableVariables:['projected_cashflow','current_cashflow','total_debt_payments'] },
+        { id: 'gross_multiple', name: 'Gross Multiple', value: updatedFormData.gross_multiple.value, metricType: 'X', notes: updatedFormData.gross_multiple.notes, isIndependent: false, editableVariables:['gross_multiple','asking_price','gross_revenue'] },
+        { id: 'sde_multiple', name: 'SDE Multiple', value: updatedFormData.sde_multiple.value, metricType: 'X', notes: updatedFormData.sde_multiple.notes, isIndependent: false , editableVariables:['sde_multiple','asking_price','sde_value'] },
+        { id: 'sba_loan_payment', name: 'SBA Loan Payment', value: updatedFormData.sba_loan_payment.value, metricType: '$', notes: updatedFormData.sba_loan_payment.notes, isIndependent: false , editableVariables:['sba_loan_payment','sba_loan_amount','sba_loan_rate','sba_loan_term']},
+        { id: 'additional_loan_payment', name: 'Additional Loan Payment', value: updatedFormData.additional_loan_payment.value, metricType: '$', notes: updatedFormData.additional_loan_payment.notes, isIndependent: false , editableVariables:['additional_loan_payment','additional_loan_amount','additional_loan_rate','additional_loan_term']},
+        { id: 'total_debt_payments', name: 'Total Debt Payments', value: updatedFormData.total_debt_payments.value, metricType: '$', notes: updatedFormData.total_debt_payments.notes, isIndependent: false , editableVariables:['total_debt_payments','sba_loan_payment','additional_loan_payment','additional_debt'] },
+        { id: 'projected_net_profit_margin', name: 'Projected Net Profit Margin', value: updatedFormData.projected_net_profit_margin.value, metricType: '%', notes: updatedFormData.projected_net_profit_margin.notes, isIndependent: false, editableVariables:['projected_net_profit_margin','projected_cashflow','gross_revenue'] },
         ...updatedFormData.custom_cards_columns,
       ]
 
@@ -366,12 +371,14 @@ export default function BusinessMetrics() {
         const totalDebtPayments = sbaLoanPayment + additionalLoanPayment + additionalDebt
   
         // Calculate Dependent KPIs
-        const dscr = totalDebtPayments > 0 ? (currentCashflow + expectedSalary) / totalDebtPayments : 0
+        const dscr = getCardValue('dscr')
+        // totalDebtPayments > 0 ? (currentCashflow + expectedSalary) / totalDebtPayments : 0
         const projectedCashflow = currentCashflow - totalDebtPayments - newExpenses
         const grossMultiple = grossRevenue > 0 ? askingPrice / grossRevenue : 0
         const sdeMultiple = sdeValue > 0 ? askingPrice / sdeValue : 0
         const projectedNetProfitMargin = grossRevenue > 0 ? (projectedCashflow / grossRevenue) * 100 : 0
-
+        console.log(dscr);
+        
         // console.log(sdeMultiple);
         
         return cards.map(card => {
@@ -379,17 +386,19 @@ export default function BusinessMetrics() {
             case 'dscr':
               return { ...card, value: dscr }
             case 'projected_cashflow':
-              return { ...card, value: projectedCashflow }
+              return { ...card, value: getCardValue('projected_cashflow')}
             case 'gross_multiple':
-              return { ...card, value: grossMultiple }
+              return { ...card, value: getCardValue('gross_multiple') }
             case 'sde_multiple':
-              return { ...card, value: sdeMultiple }
+              return { ...card, value: getCardValue('sde_multiple') }
             case 'sba_loan_payment':
-              return { ...card, value: sbaLoanPayment }
+              return { ...card, value: getCardValue('sba_loan_payment') }
+            case 'additional_loan_payment':
+              return {...card, value: getCardValue('additional_loan_payment')}
             case 'total_debt_payments':
-              return { ...card, value: totalDebtPayments }
+              return { ...card, value: getCardValue('total_debt_payments') }
             case 'projected_net_profit_margin':
-              return { ...card, value: projectedNetProfitMargin }
+              return { ...card, value: getCardValue('projected_net_profit_margin') }
             default:
               return card
           }
@@ -415,8 +424,8 @@ export default function BusinessMetrics() {
         const updatedCards = metricCards.map(card => 
           card.id === updatedCard.id ? updatedCard : card
         );
-        const recalculatedCards = calculateDependentKPIs(updatedCards);
-        setMetricCards(recalculatedCards);
+        // const recalculatedCards = calculateDependentKPIs(updatedCards);
+        // setMetricCards(recalculatedCards);
        
         const updatedFormData = {
           ...formData,
@@ -428,7 +437,7 @@ export default function BusinessMetrics() {
           return isNaN(parsed) ? 0 : parsed;
         };
     
-        recalculatedCards.forEach(card => {
+        metricCards.forEach(card => {
           if (!card || typeof card !== 'object' || !card.id) {
             console.warn('Invalid card encountered:', card);
             return; // Skip this iteration
@@ -497,6 +506,9 @@ export default function BusinessMetrics() {
               case 'sba_loan_payment':
                 updatedFormData.sba_loan_payment = { value: numericValue, notes: card.notes };
                 break;
+              case 'additional_loan_payment':
+                updatedFormData.additional_loan_payment= {value: numericValue, notes:card.notes};
+                break;
               case 'total_debt_payments':
                 updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };
                 break;
@@ -544,6 +556,8 @@ export default function BusinessMetrics() {
       ...prev,
       [name]: name === 'value' ? parseFloat(value) || 0 : value,
     }));
+    console.log(newCardData);
+    
   };
 
   const handleNewCardSubmit = async (e: React.FormEvent) => {
@@ -559,12 +573,15 @@ export default function BusinessMetrics() {
     };
 
     try {
+      console.log(newMetric);
+      
       const updatedMetricCards = [...metricCards, newMetric];
       setMetricCards(updatedMetricCards);
       const updatedCardsOrder = [...cardsOrder,newMetric.id]
       setCardsOrder(updatedCardsOrder);
       // Create a new object without the 'id' field for the server update
       const newMetricForServer = {
+        id:newMetric.id,
         name: newMetric.name,
         value: newMetric.value,
         metricType: newMetric.metricType,
@@ -580,7 +597,8 @@ export default function BusinessMetrics() {
 
       // Remove any potential _id fields from the entire formData
       const cleanedFormData = JSON.parse(JSON.stringify(updatedFormData, (key, value) => key === '_id' ? undefined : value));
-
+      console.log(cleanedFormData);
+      
       setFormData(cleanedFormData);
 
       // Update the business data on the server
@@ -629,6 +647,7 @@ export default function BusinessMetrics() {
       setCardsOrder(updatedCardsOrder);
       // Remove the card from formData.custom_cards_columns
       const updatedCustomCards = formData.custom_cards_columns.filter(card => card.id !== cardId);
+      console.log(updatedCustomCards);
       
       // Create updated formData
       const updatedFormData = {
@@ -885,6 +904,11 @@ export default function BusinessMetrics() {
               {cardsOrder.map((cardId, index) => {
                 const card = metricCards.find(c => c.id === cardId);
                 if (!card) return null;
+                if (card.id=='sba_loan_amount' || card.id=='sba_loan_rate' || card.id=='sba_loan_term' || card.id=='additional_debt' || card.id =='additional_loan_amount' || card.id == 'additional_loan_rate' || card.id=='additional_loan_term' || card.id =='growth_rate') {
+
+                  return null
+                  
+                }
                 return (
                   <Draggable key={card.id} draggableId={card.id} index={index}>
                     {(provided, snapshot) => (
@@ -1037,20 +1061,26 @@ export default function BusinessMetrics() {
               handleCardSave(editingCard)
             }}>
               <div className="space-y-4">
-                {editingCard.isIndependent && (
-                  <div>
-                    <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
-                      Value
-                    </label>
-                    <input
-                      type="number"
-                      id="value"
-                      value={editingCard.value}
-                      onChange={(e) => setEditingCard({ ...editingCard, value: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                )}
+              {editingCard.editableVariables?.map((variable) => (
+            <div key={variable}>
+              <label htmlFor={variable} className="block text-sm font-medium text-gray-700 mb-1">
+                {variable}
+              </label>
+              <input
+                type="text"
+                id={variable}
+                // value={(editingCard as any)[variable] || ''}
+                onChange={(e) => {
+                  const updatedMetricCards = metricCards.map(card => 
+                    card.id === variable ? { ...card, value: parseFloat(e.target.value) || 0 } : card
+                  )
+                  setMetricCards(updatedMetricCards)
+                  
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          ))}
                 <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                     Notes
@@ -1225,10 +1255,6 @@ function MetricCard({
   
   const isCustomCard = id === undefined || id?.startsWith('custom') || false;
  
-  
-  
-  
-
   return (
     <div 
       className="bg-white rounded-xl p-3 border border-gray-300 shadow-sm hover:shadow-lg transition-all duration-300 h-[110px] cursor-pointer"
