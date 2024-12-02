@@ -28,9 +28,14 @@ export default function HomePage() {
     current_cashflow: {value:0,notes:[]},
     asking_price: {value:0,notes:[]},
   })
+  const userId = localStorage.getItem('user_id');
   const navigate = useNavigate()
 
   useEffect(() => {
+    if (!userId) {
+      navigate('/login')
+      
+    }
     setIsPageLoading(true)
     const fetchData = async () => {
       const allBusinesses = await fetchAllBusiness()

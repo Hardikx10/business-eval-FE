@@ -14,7 +14,7 @@ interface MetricCardData {
   name: string;
   value: number;
   metricType: '$' | 'X' | 'N' | '%';
-  notes: string[];
+  notes?: string[];
   isIndependent: boolean;
   editableVariables?:string[]
 }
@@ -24,31 +24,31 @@ interface FormData {
   business_location: string;
   business_url: string;
   business_attachments: any[];
-  current_cashflow: { value: number; notes: string[] };
-  expected_salary: { value: number; notes: string[] };
-  gross_revenue: { value: number; notes: string[] };
-  growth_rate: { value: number; notes: string[] };
-  asking_price: { value: number; notes: string[] };
-  sde_value: { value: number; notes: string[] };
+  current_cashflow: { value: number; notes?: string[] };
+  expected_salary: { value: number; notes?: string[] };
+  gross_revenue: { value: number; notes?: string[] };
+  growth_rate: { value: number; notes?: string[] };
+  asking_price: { value: number; notes?: string[] };
+  sde_value: { value: number; notes?: string[] };
   loan_sba: {
-    amount: { value: number; notes: string[] };
-    rate: { value: number; notes: string[] };
-    term: { value: number; notes: string[] };
+    amount: { value: number; notes?: string[] };
+    rate: { value: number; notes?: string[] };
+    term: { value: number; notes?: string[] };
   };
   loan_additional: {
-    amount: { value: number; notes: string[] };
-    rate: { value: number; notes: string[] };
-    term: { value: number; notes: string[] };
+    amount: { value: number; notes?: string[] };
+    rate: { value: number; notes?: string[] };
+    term: { value: number; notes?: string[] };
   };
-  additional_debt: { value: number; notes: string[] };
-  dscr: { value: number; notes: string[] };
-  projected_cashflow: { value: number; notes: string[] };
-  gross_multiple: { value: number; notes: string[] };
-  sde_multiple: { value: number; notes: string[] };
-  sba_loan_payment: { value: number; notes: string[] };
-  additional_loan_payment: {value: number; notes:string[] };
-  total_debt_payments: { value: number; notes: string[] };
-  projected_net_profit_margin: { value: number; notes: string[] };
+  additional_debt: { value: number; notes?: string[] };
+  dscr: { value: number; notes?: string[] };
+  projected_cashflow: { value: number; notes?: string[] };
+  gross_multiple: { value: number; notes?: string[] };
+  sde_multiple: { value: number; notes?: string[] };
+  sba_loan_payment: { value: number; notes?: string[] };
+  additional_loan_payment: {value: number; notes?:string[] };
+  total_debt_payments: { value: number; notes?: string[] };
+  projected_net_profit_margin: { value: number; notes?: string[] };
   business_notes: string[];
   custom_cards_columns: MetricCardData[];
   cards_order: string[]
@@ -85,6 +85,10 @@ export default function BusinessMetrics() {
   const user_id = localStorage.getItem('user_id');
   const token = localStorage.getItem('token');
   const [isConsolidatedNotesOpen, setIsConsolidatedNotesOpen] = useState(false)
+
+  const [current_cashflow, setCurrentCashflow]=useState({value:0,notes:''})
+  
+
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
@@ -206,7 +210,7 @@ export default function BusinessMetrics() {
       ]
 
       setMetricCards(updatedMetricCards)
-      console.log(formData);
+      // console.log(formData);
       
       setIsPageLoading(false)
     }
@@ -318,7 +322,7 @@ export default function BusinessMetrics() {
       const newOrder = Array.from(cardsOrder);
       const [reorderedItem] = newOrder.splice(result.source.index, 1);
       newOrder.splice(result.destination.index, 0, reorderedItem);
-      console.log(newOrder);
+      // console.log(newOrder);
       
       setCardsOrder(newOrder);
   
@@ -377,14 +381,14 @@ export default function BusinessMetrics() {
         const grossMultiple = grossRevenue > 0 ? askingPrice / grossRevenue : 0
         const sdeMultiple = sdeValue > 0 ? askingPrice / sdeValue : 0
         const projectedNetProfitMargin = grossRevenue > 0 ? (projectedCashflow / grossRevenue) * 100 : 0
-        console.log(dscr);
+        // console.log(dscr);
         
         // console.log(sdeMultiple);
         
         return cards.map(card => {
           switch (card.id) {
             case 'dscr':
-              return { ...card, value: dscr }
+              return { ...card, value: getCardValue('dscr') }
             case 'projected_cashflow':
               return { ...card, value: getCardValue('projected_cashflow')}
             case 'gross_multiple':
@@ -425,7 +429,7 @@ export default function BusinessMetrics() {
           card.id === updatedCard.id ? updatedCard : card
         );
         // const recalculatedCards = calculateDependentKPIs(updatedCards);
-        // setMetricCards(recalculatedCards);
+        setMetricCards(updatedCards);
        
         const updatedFormData = {
           ...formData,
@@ -434,7 +438,7 @@ export default function BusinessMetrics() {
     
         const parseNumber = (value: any): number => {
           const parsed = parseFloat(value);
-          return isNaN(parsed) ? 0 : parsed;
+          return parsed;
         };
     
         metricCards.forEach(card => {
@@ -454,21 +458,79 @@ export default function BusinessMetrics() {
             switch (card.id) {
               case 'current_cashflow':
                 updatedFormData.current_cashflow = { value: numericValue, notes: card.notes };
+                if (updatedFormData.expected_salary.value >0 && updatedFormData.total_debt_payments.value>0) {
+                  updatedFormData.dscr={value:((numericValue+updatedFormData.expected_salary.value)/updatedFormData.total_debt_payments.value)}
+                  
+                }
+                if (updatedFormData.current_cashflow.value>0 && updatedFormData.total_debt_payments.value>0) {
+
+                  updatedFormData.projected_cashflow={value:(numericValue-updatedFormData.total_debt_payments.value)}
+
+                  
+                }                
                 break;
               case 'expected_salary':
                 updatedFormData.expected_salary = { value: numericValue, notes: card.notes };
+                if (updatedFormData.current_cashflow.value >0 && updatedFormData.total_debt_payments.value>0) {
+                  updatedFormData.dscr={value:((numericValue+updatedFormData.current_cashflow.value)/updatedFormData.total_debt_payments.value)}
+                  
+                  
+                }
                 break;
               case 'gross_revenue':
                 updatedFormData.gross_revenue = { value: numericValue, notes: card.notes };
+
+                if (updatedFormData.asking_price.value>0 && numericValue>0) {
+
+                  updatedFormData.gross_multiple={value:(updatedFormData.asking_price.value/numericValue)}
+                  
+                }
+
+                if (updatedFormData.projected_cashflow.value>0 && numericValue>0) {
+                  
+                  updatedFormData.projected_net_profit_margin.value=((updatedFormData.projected_cashflow.value / numericValue)*100)
+
+
+                  
+                }
+                 
+                
+
+           
                 break;
               case 'growth_rate':
                 updatedFormData.growth_rate = { value: numericValue, notes: card.notes };
                 break;
               case 'asking_price':
                 updatedFormData.asking_price = { value: numericValue, notes: card.notes };
+
+                if (numericValue>0 && updatedFormData.gross_revenue.value>0) {
+
+                  updatedFormData.gross_multiple={value:(numericValue/updatedFormData.gross_revenue.value)}
+                  
+                }
+
+                if (numericValue>0 && updatedFormData.sde_value.value>0) {
+                  updatedFormData.sde_multiple={value:(numericValue/updatedFormData.sde_value.value)}
+                  
+                }
+
+
+                
+
                 break;
               case 'sde_value':
                 updatedFormData.sde_value = { value: numericValue, notes: card.notes };
+
+                if (numericValue>0 && updatedFormData.asking_price.value>0) {
+
+                updatedFormData.sde_multiple={value:(updatedFormData.asking_price.value/numericValue)}
+
+                  
+                  
+                }
+
+                
                 break;
               case 'sba_loan_amount':
                 updatedFormData.loan_sba.amount = { value: numericValue, notes: card.notes };
@@ -490,12 +552,26 @@ export default function BusinessMetrics() {
                 break;
               case 'additional_debt':
                 updatedFormData.additional_debt = { value: numericValue, notes: card.notes };
+
+                 updatedFormData.total_debt_payments={ value: (updatedFormData.sba_loan_payment.value + updatedFormData.additional_loan_payment.value + numericValue)}
+
+                
                 break;
               case 'dscr':
                 updatedFormData.dscr = { value: numericValue, notes: card.notes };
                 break;
               case 'projected_cashflow':
                 updatedFormData.projected_cashflow = { value: numericValue, notes: card.notes };
+
+                if(numericValue>0 && updatedFormData.gross_revenue.value>0){
+
+                  updatedFormData.projected_net_profit_margin.value=((numericValue / updatedFormData.gross_revenue.value)*100)
+                  
+
+                }
+
+                
+
                 break;
               case 'gross_multiple':
                 updatedFormData.gross_multiple = { value: numericValue, notes: card.notes };
@@ -505,12 +581,34 @@ export default function BusinessMetrics() {
                 break;
               case 'sba_loan_payment':
                 updatedFormData.sba_loan_payment = { value: numericValue, notes: card.notes };
+
+                updatedFormData.total_debt_payments={ value: (numericValue + updatedFormData.additional_loan_payment.value + updatedFormData.additional_debt.value)}
+
+                
                 break;
               case 'additional_loan_payment':
                 updatedFormData.additional_loan_payment= {value: numericValue, notes:card.notes};
+
+                updatedFormData.total_debt_payments={ value: (updatedFormData.sba_loan_payment.value + numericValue + updatedFormData.additional_debt.value)}
+
+                
+                
                 break;
               case 'total_debt_payments':
                 updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };
+                if (updatedFormData.current_cashflow.value >0 && updatedFormData.expected_salary.value>0) {
+                  updatedFormData.dscr={value:((updatedFormData.current_cashflow.value + updatedFormData.expected_salary.value)/numericValue)}
+                   
+                  
+                }
+                
+                if (updatedFormData.current_cashflow.value>0 && updatedFormData.total_debt_payments.value>0) {
+
+                  updatedFormData.projected_cashflow={value:(updatedFormData.current_cashflow.value-numericValue)}
+
+                  
+                }
+                
                 break;
               case 'projected_net_profit_margin':
                 updatedFormData.projected_net_profit_margin = { value: numericValue, notes: card.notes };
@@ -526,13 +624,14 @@ export default function BusinessMetrics() {
     
         // Ensure custom_cards_columns doesn't have _id
         formDataWithoutId.custom_cards_columns = formDataWithoutId.custom_cards_columns.map(({ _id, ...card }) => card);
-    
+        console.log(formDataWithoutId);
+        
         setFormData(formDataWithoutId);
         // console.log('Updated form data:', formDataWithoutId);
         
         // Update the business data on the server with the entire formData, excluding _id
         await updateBusiness(id, formDataWithoutId);
-        
+        window.location.reload()
         toast.success('Metric updated successfully!');
     
       } catch (error) {
@@ -556,7 +655,7 @@ export default function BusinessMetrics() {
       ...prev,
       [name]: name === 'value' ? parseFloat(value) || 0 : value,
     }));
-    console.log(newCardData);
+    // console.log(newCardData);
     
   };
 
@@ -573,7 +672,7 @@ export default function BusinessMetrics() {
     };
 
     try {
-      console.log(newMetric);
+      // console.log(newMetric);
       
       const updatedMetricCards = [...metricCards, newMetric];
       setMetricCards(updatedMetricCards);
@@ -597,7 +696,7 @@ export default function BusinessMetrics() {
 
       // Remove any potential _id fields from the entire formData
       const cleanedFormData = JSON.parse(JSON.stringify(updatedFormData, (key, value) => key === '_id' ? undefined : value));
-      console.log(cleanedFormData);
+      // console.log(cleanedFormData);
       
       setFormData(cleanedFormData);
 
@@ -647,7 +746,7 @@ export default function BusinessMetrics() {
       setCardsOrder(updatedCardsOrder);
       // Remove the card from formData.custom_cards_columns
       const updatedCustomCards = formData.custom_cards_columns.filter(card => card.id !== cardId);
-      console.log(updatedCustomCards);
+      // console.log(updatedCustomCards);
       
       // Create updated formData
       const updatedFormData = {
@@ -946,7 +1045,7 @@ export default function BusinessMetrics() {
         {/* Consolidated Notes Button */}
         <button
           onClick={() => {setIsConsolidatedNotesOpen(true)
-            console.log(metricCards);
+            // console.log(metricCards);
             
           }}
           className="fixed bottom-4 right-4 text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-md shadow-lg transition duration-300 ease-in-out mb-1"
@@ -1301,6 +1400,5 @@ function AddNewCard({ onClick }: { onClick: () => void }) {
     </div>
   );
 }
-
 
 

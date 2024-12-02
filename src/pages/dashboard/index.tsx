@@ -16,6 +16,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CustomModal from '../../components/modal';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
+import { Loader2 } from 'lucide-react';
 function Dashboard() {
   const { fetchBusiness, updateBusiness, business, isLoading, error } =
     useBusinessStore();
@@ -105,7 +106,9 @@ function Dashboard() {
   }, [error]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+    </div>
   }
   const sensitivityAnalysis = business?.business?.metrics?.sensitivityAnalysis;
 
