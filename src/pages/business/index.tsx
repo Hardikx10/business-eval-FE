@@ -1208,7 +1208,7 @@ useEffect(()=>{
               {editingCard.editableVariables?.map((variable) => (
             <div key={variable}>
               <label htmlFor={variable} className="block text-sm font-medium text-gray-700 mb-1">
-                {variable}
+                {variable.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
               </label>
               <input
                 type="text"
@@ -1445,5 +1445,4 @@ function AddNewCard({ onClick }: { onClick: () => void }) {
     </div>
   );
 }
-
 
