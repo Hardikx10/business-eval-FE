@@ -392,23 +392,23 @@ useEffect(()=>{
 
 
 
-// useEffect(()=>{
+useEffect(()=>{
   
   
-//   const updateObj= {
-//     dscr : {value :dscr},
-//     projected_cashflow : {value : projected_cashflow},
-//     gross_multiple: {value:gross_multiple},
-//     sde_multiple: {value:sde_multiple},
-//     sba_loan_payment: {value:sba_loan_amount},
-//     additional_loan_payment:{value:additional_loan_payment},
-//     total_debt_payments:{value:total_debt_payments},
-//     projected_net_profit_margin:{value:projected_net_profit_margin}
+  const updateObj= {
+    "dscr" : {"value":dscr},
+    "projected_cashflow" : {"value":projected_cashflow},
+    "gross_multiple": {"value":gross_multiple},
+    "sde_multiple": {"value":sde_multiple},
+    "sba_loan_payment":{"value":sba_loan_payment},
+    "additional_loan_payment":{"value":additional_loan_payment},
+    "total_debt_payments":{"value":total_debt_payments},
+    "projected_net_profit_margin":{"value":projected_net_profit_margin}
+  }
+  
+  updateBusiness(id,updateObj)
 
-//   }
-//   updateBusiness(id,updateObj)
-
-// },[dscr,projected_cashflow,gross_multiple,sde_multiple,sba_loan_payment,additional_loan_payment,total_debt_payments,projected_net_profit_margin])
+},[dscr,projected_cashflow,gross_multiple,sde_multiple,sba_loan_payment,additional_loan_payment,total_debt_payments,projected_net_profit_margin])
 
 
   const toggleNotesTextarea = () => {
