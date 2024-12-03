@@ -865,7 +865,7 @@ useEffect(()=>{
     <div className="min-h-screen bg-blue-100">
       {/* Top Navigation */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
-        <button onClick={()=>{navigate('/home')}} className="p-2 hover:bg-gray-100 rounded-lg">
+        <button onClick={()=>{navigate('/')}} className="p-2 hover:bg-gray-100 rounded-lg">
           <ArrowLeft className="w-5 h-5 text-blue-500" />
         </button>
         <h1 className="text-blue-600 font-medium">
