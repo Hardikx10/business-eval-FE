@@ -51,8 +51,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
 
   // Function to update an existing business
   updateBusiness: async (businessId, businessData) => {
-    console.log(businessData);
-    
+  
     set({ isLoading: true, error: null });
     try {
       const response = await axios.put(
@@ -60,7 +59,7 @@ const useBusinessStore = create<BusinessState>((set) => ({
         businessData
       );
       set({ isLoading: false });
-      console.log(response.data);
+      // console.log(response.data);
       
       return response.data;
     } catch (error: any) {

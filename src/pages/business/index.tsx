@@ -15,49 +15,48 @@ interface MetricCardData {
   value: number;
   metricType: '$' | 'X' | 'N' | '%';
   notes?: string[];
-  isIndependent: boolean;
+  isIndependent?: boolean;
   editableVariables?:string[]
 }
 
 interface FormData {
-  business_name: string;
-  business_location: string;
-  business_url: string;
-  business_attachments: any[];
-  current_cashflow: { value: number; notes?: string[] };
-  expected_salary: { value: number; notes?: string[] };
-  gross_revenue: { value: number; notes?: string[] };
-  growth_rate: { value: number; notes?: string[] };
-  asking_price: { value: number; notes?: string[] };
-  sde_value: { value: number; notes?: string[] };
-  loan_sba: {
+  business_name?: string;
+  business_location?: string;
+  business_url?: string;
+  business_attachments?: any[];
+  current_cashflow?: { value: number; notes?: string[] };
+  expected_salary?: { value: number; notes?: string[] };
+  gross_revenue?: { value: number; notes?: string[] };
+  growth_rate?: { value: number; notes?: string[] };
+  asking_price?: { value: number; notes?: string[] };
+  sde_value?: { value: number; notes?: string[] };
+  loan_sba?: {
     amount: { value: number; notes?: string[] };
     rate: { value: number; notes?: string[] };
     term: { value: number; notes?: string[] };
   };
-  loan_additional: {
+  loan_additional?: {
     amount: { value: number; notes?: string[] };
     rate: { value: number; notes?: string[] };
     term: { value: number; notes?: string[] };
   };
-  additional_debt: { value: number; notes?: string[] };
-  dscr: { value: number; notes?: string[] };
-  projected_cashflow: { value: number; notes?: string[] };
-  gross_multiple: { value: number; notes?: string[] };
-  sde_multiple: { value: number; notes?: string[] };
-  sba_loan_payment: { value: number; notes?: string[] };
-  additional_loan_payment: {value: number; notes?:string[] };
-  total_debt_payments: { value: number; notes?: string[] };
-  projected_net_profit_margin: { value: number; notes?: string[] };
-  business_notes: string[];
-  custom_cards_columns: MetricCardData[];
-  cards_order: string[]
+  additional_debt?: { value: number; notes?: string[] };
+  dscr?: { value: number; notes?: string[] };
+  projected_cashflow?: { value: number; notes?: string[] };
+  gross_multiple?: { value: number; notes?: string[] };
+  sde_multiple?: { value: number; notes?: string[] };
+  sba_loan_payment?: { value: number; notes?: string[] };
+  additional_loan_payment?: {value: number; notes?:string[] };
+  total_debt_payments?: { value: number; notes?: string[] };
+  projected_net_profit_margin?: { value: number; notes?: string[] };
+  business_notes?: string[];
+  custom_cards_columns?: MetricCardData[];
+  cards_order?: string[]
 }
 
 export default function BusinessMetrics() {
   const { fetchBusiness, updateBusiness, business,error , uploadFile } = useBusinessStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const [isPageLoading, setIsPageLoading] = useState(true)
   const { id } = useParams();
   const [isUploading, setIsUploading] = useState(false)
@@ -81,13 +80,33 @@ export default function BusinessMetrics() {
   const [cardsOrder, setCardsOrder] = useState<string[]>([]) // to keep track of the cards position
   const [isAttachmentsOpen, setIsAttachmentsOpen] = useState(false)
   const [isNewCardModalOpen, setIsNewCardModalOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false)
+
   const user_id = localStorage.getItem('user_id');
   const token = localStorage.getItem('token');
   const [isConsolidatedNotesOpen, setIsConsolidatedNotesOpen] = useState(false)
 
-  const [current_cashflow, setCurrentCashflow]=useState({value:0,notes:''})
-  
+  const [current_cashflow, setCurrentCashflow]=useState(0)
+  const [expected_salary,setExpectedSalary]=useState(0)
+  const [total_debt_payments,setTotalDebtPayments]=useState(0)
+  const [dscr,setDscr]=useState(0)
+  const [sde_value,setSdeValue]=useState(0)
+  const [sde_multiple,setSdeMultiple]=useState(0)
+  const [asking_price,setAskingPrice]=useState(0)
+  const [sba_loan_amount,setSbaLoanAmount]=useState(0)
+  const [sba_loan_payment,setSbaLoanPayment]=useState(0)
+  const [sba_loan_rate,setSbaLoanRate]=useState(0)
+  const [sba_loan_term,setSbaLoanTerm]=useState(0)
+  const [additional_loan_amount,setAdditionalLoanAmount]=useState(0)
+  const [additional_loan_payment,setAdditionalLoanPayment]=useState(0)
+  const [additional_loan_rate,setAdditionalLoanRate]=useState(0)
+  const [additional_loan_term,setAdditionalLoanTerm]=useState(0)
+  const [gross_multiple,setGrossMultiple]=useState(0)
+  const [projected_cashflow,setProjectedCashflow]=useState(0)
+  const [projected_net_profit_margin,setProjectedNetProfitMargin]=useState(0)
+  const [gross_revenue,setGrossRevenue]=useState(0)
+  const [additional_debt,setAdditionalDebt]=useState(0)
+ 
+
 
   const navigate = useNavigate();
 
@@ -126,9 +145,6 @@ export default function BusinessMetrics() {
     cards_order:[]
   });
 
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   useEffect(() => {
     setIsPageLoading(true)
@@ -143,7 +159,6 @@ export default function BusinessMetrics() {
       ]
       const data = business.business.data
       const updatedFormData = {
-        ...formData,
         business_name: data.business_name || '',
         business_location: data.business_location || '',
         business_url: data.business_url || '',
@@ -165,13 +180,14 @@ export default function BusinessMetrics() {
           term: data.loan_additional?.term || { value: 0, notes: [] },
         },
         additional_debt: data.additional_debt || { value: 0, notes: [] },
+        total_debt_payments: data.total_debt_payments || { value: 0, notes: [] },
+
         dscr: data.dscr || { value: 0, notes: [] },
         projected_cashflow: data.projected_cashflow || { value: 0, notes: [] },
         gross_multiple: data.gross_multiple || { value: 0, notes: [] },
         sde_multiple: data.sde_multiple || { value: 0, notes: [] },
         sba_loan_payment: data.sba_loan_payment || { value: 0, notes: [] },
         additional_loan_payment: data.additional_loan_payment || { value: 0, notes: [] },
-        total_debt_payments: data.total_debt_payments || { value: 0, notes: [] },
         projected_net_profit_margin: data.projected_net_profit_margin || { value: 0, notes: [] },
         business_notes: data.business_notes || [],
         custom_cards_columns: data.custom_cards_columns || [],
@@ -186,44 +202,73 @@ export default function BusinessMetrics() {
 
       const updatedMetricCards: MetricCardData[] = [
         { id: 'current_cashflow', name: 'Current Cashflow', value: updatedFormData.current_cashflow.value, metricType: '$', notes: updatedFormData.current_cashflow.notes, isIndependent: true , editableVariables:['current_cashflow']},
+
         { id: 'expected_salary', name: 'Expected Salary', value: updatedFormData.expected_salary.value, metricType: '$', notes: updatedFormData.expected_salary.notes, isIndependent: true, editableVariables:['expected_salary'] },
+
         { id: 'gross_revenue', name: 'Gross Revenue', value: updatedFormData.gross_revenue.value, metricType: '$', notes: updatedFormData.gross_revenue.notes, isIndependent: true , editableVariables:['gross_revenue'] },
+
         { id: 'growth_rate', name: 'Growth Rate', value: updatedFormData.growth_rate.value, metricType: '%', notes: updatedFormData.growth_rate.notes, isIndependent: true },
+
         { id: 'asking_price', name: 'Asking Price', value: updatedFormData.asking_price.value, metricType: '$', notes: updatedFormData.asking_price.notes, isIndependent: true, editableVariables:['asking_price'] },
+
         { id: 'sde_value', name: 'SDE Value', value: updatedFormData.sde_value.value, metricType: '$', notes: updatedFormData.sde_value.notes, isIndependent: true, editableVariables:['sde_value'] },
+
         { id: 'sba_loan_amount', name: 'SBA Loan Amount', value: updatedFormData.loan_sba.amount.value, metricType: '$', notes: updatedFormData.loan_sba.amount.notes, isIndependent: true },
+
         { id: 'sba_loan_rate', name: 'SBA Loan Rate', value: updatedFormData.loan_sba.rate.value, metricType: '%', notes: updatedFormData.loan_sba.rate.notes, isIndependent: true },
+
         { id: 'sba_loan_term', name: 'SBA Loan Term', value: updatedFormData.loan_sba.term.value, metricType: 'N', notes: updatedFormData.loan_sba.term.notes, isIndependent: true },
+
         { id: 'additional_loan_amount', name: 'Additional Loan Amount', value: updatedFormData.loan_additional.amount.value, metricType: '$', notes: updatedFormData.loan_additional.amount.notes, isIndependent: true },
+
         { id: 'additional_loan_rate', name: 'Additional Loan Rate', value: updatedFormData.loan_additional.rate.value, metricType: '%', notes: updatedFormData.loan_additional.rate.notes, isIndependent: true },
+
         { id: 'additional_loan_term', name: 'Additional Loan Term', value: updatedFormData.loan_additional.term.value, metricType: 'N', notes: updatedFormData.loan_additional.term.notes, isIndependent: true },
+
         { id: 'additional_debt', name: 'Additional Debt', value: updatedFormData.additional_debt.value, metricType: '$', notes: updatedFormData.additional_debt.notes, isIndependent: true },
-        { id: 'dscr', name: 'DSCR', value: updatedFormData.dscr.value, metricType: 'N', notes: updatedFormData.dscr.notes, isIndependent: false ,editableVariables:['dscr','current_cashflow','expected_salary','total_debt_payments']},
-        { id: 'projected_cashflow', name: 'Projected Cashflow', value: updatedFormData.projected_cashflow.value, metricType: '$', notes: updatedFormData.projected_cashflow.notes, isIndependent: false, editableVariables:['projected_cashflow','current_cashflow','total_debt_payments'] },
-        { id: 'gross_multiple', name: 'Gross Multiple', value: updatedFormData.gross_multiple.value, metricType: 'X', notes: updatedFormData.gross_multiple.notes, isIndependent: false, editableVariables:['gross_multiple','asking_price','gross_revenue'] },
-        { id: 'sde_multiple', name: 'SDE Multiple', value: updatedFormData.sde_multiple.value, metricType: 'X', notes: updatedFormData.sde_multiple.notes, isIndependent: false , editableVariables:['sde_multiple','asking_price','sde_value'] },
+
         { id: 'sba_loan_payment', name: 'SBA Loan Payment', value: updatedFormData.sba_loan_payment.value, metricType: '$', notes: updatedFormData.sba_loan_payment.notes, isIndependent: false , editableVariables:['sba_loan_payment','sba_loan_amount','sba_loan_rate','sba_loan_term']},
+
         { id: 'additional_loan_payment', name: 'Additional Loan Payment', value: updatedFormData.additional_loan_payment.value, metricType: '$', notes: updatedFormData.additional_loan_payment.notes, isIndependent: false , editableVariables:['additional_loan_payment','additional_loan_amount','additional_loan_rate','additional_loan_term']},
+
         { id: 'total_debt_payments', name: 'Total Debt Payments', value: updatedFormData.total_debt_payments.value, metricType: '$', notes: updatedFormData.total_debt_payments.notes, isIndependent: false , editableVariables:['total_debt_payments','sba_loan_payment','additional_loan_payment','additional_debt'] },
+
+        { id: 'dscr', name: 'DSCR', value: updatedFormData.dscr.value, metricType: 'N', notes: updatedFormData.dscr.notes, isIndependent: false ,editableVariables:['dscr','current_cashflow','expected_salary','total_debt_payments']},
+
+        { id: 'projected_cashflow', name: 'Projected Cashflow', value: updatedFormData.projected_cashflow.value, metricType: '$', notes: updatedFormData.projected_cashflow.notes, isIndependent: false, editableVariables:['projected_cashflow','current_cashflow','total_debt_payments'] },
+
+        { id: 'gross_multiple', name: 'Gross Multiple', value: updatedFormData.gross_multiple.value, metricType: 'X', notes: updatedFormData.gross_multiple.notes, isIndependent: false, editableVariables:['gross_multiple','asking_price','gross_revenue'] },
+
+        { id: 'sde_multiple', name: 'SDE Multiple', value: updatedFormData.sde_multiple.value, metricType: 'X', notes: updatedFormData.sde_multiple.notes, isIndependent: false , editableVariables:['sde_multiple','asking_price','sde_value'] },
+        
         { id: 'projected_net_profit_margin', name: 'Projected Net Profit Margin', value: updatedFormData.projected_net_profit_margin.value, metricType: '%', notes: updatedFormData.projected_net_profit_margin.notes, isIndependent: false, editableVariables:['projected_net_profit_margin','projected_cashflow','gross_revenue'] },
         ...updatedFormData.custom_cards_columns,
       ]
 
       setMetricCards(updatedMetricCards)
-      // console.log(formData);
-      
+  
       setIsPageLoading(false)
     }
   }, [business])
 
   useEffect(() => {
     setIsPageLoading(true)
-    if (id) {
-      fetchBusiness(id);
+    
+    if (!user_id) {
+
+      navigate('/home')
       
-      
-      setIsPageLoading(false)
     }
+    async function fetchData() {
+
+      await fetchBusiness(id)
+      
+    }
+
+    fetchData()
+
+    setIsPageLoading(false)
+
   }, [fetchBusiness, id]);
 
   useEffect(() => {
@@ -232,6 +277,139 @@ export default function BusinessMetrics() {
       toast.error(`Error: ${error}`);
     }
   }, [error]);
+
+
+
+useEffect(()=>{
+
+    if (current_cashflow>0 && expected_salary>0 && total_debt_payments>0) {
+
+      metricCards.map((card)=>{
+
+        if (card.id =='dscr') {
+
+          card.value= (current_cashflow + expected_salary) / total_debt_payments
+
+          setDscr(card.value)
+          
+        }
+        if (card.id=='projected_cashflow') {
+
+          card.value = current_cashflow- total_debt_payments
+          setProjectedCashflow(card.value)
+        }
+
+      })
+      
+    }
+},[current_cashflow,expected_salary,total_debt_payments])
+
+useEffect(()=>{
+
+  metricCards.map((card)=>{
+
+      if (card.id =='gross_multiple' && gross_revenue>0) {
+
+        card.value= asking_price / gross_revenue
+
+        console.log(card.value);
+        
+        setGrossMultiple(card.value)
+        
+      }
+
+      if (card.id=='sde_multiple' && sde_value>0) {
+
+        card.value = asking_price / sde_value
+        setSdeMultiple(card.value)
+        
+      }
+
+      if (card.id=='projected_net_profit_margin' && gross_revenue>0) {
+
+        card.value= (projected_cashflow / gross_revenue) * 100
+        setProjectedNetProfitMargin(card.value)
+        
+      }
+  
+  })
+  console.log(metricCards);
+    
+
+
+},[asking_price,gross_revenue,sde_value,projected_cashflow])
+
+useEffect(()=>{
+
+  metricCards.map((card)=>{
+
+    if (card.id=='sba_loan_payment' && sba_loan_amount>0) {
+
+      card.value=(sba_loan_amount * (sba_loan_rate / 1200)) / (1 - Math.pow(1 + (sba_loan_rate / 1200), -sba_loan_term * 12))
+
+      setSbaLoanPayment(card.value)
+      
+    }
+
+  })
+
+
+},[sba_loan_amount,sba_loan_rate,sba_loan_term])
+
+useEffect(()=>{
+
+  metricCards.map((card)=>{
+
+    if (card.id=='additional_loan_payment' && additional_loan_amount>0) {
+
+      card.value=(additional_loan_amount * (additional_loan_rate / 1200)) / (1 - Math.pow(1 + (additional_loan_rate / 1200), -additional_loan_term * 12))
+      setAdditionalLoanPayment(card.value)
+      
+    }
+
+  })
+
+
+},[additional_loan_amount,additional_loan_rate,additional_loan_term])
+
+useEffect(()=>{
+
+  metricCards.map((card)=>{
+
+    if (card.id=='total_debt_payments') {
+
+      card.value= sba_loan_payment + additional_loan_payment + additional_debt
+      setTotalDebtPayments(card.value)
+      
+    }
+
+  })
+
+
+
+},[additional_loan_payment,sba_loan_payment,additional_debt])
+
+
+
+
+// useEffect(()=>{
+  
+  
+//   const updateObj= {
+//     dscr : {value :dscr},
+//     projected_cashflow : {value : projected_cashflow},
+//     gross_multiple: {value:gross_multiple},
+//     sde_multiple: {value:sde_multiple},
+//     sba_loan_payment: {value:sba_loan_amount},
+//     additional_loan_payment:{value:additional_loan_payment},
+//     total_debt_payments:{value:total_debt_payments},
+//     projected_net_profit_margin:{value:projected_net_profit_margin}
+
+//   }
+//   updateBusiness(id,updateObj)
+
+// },[dscr,projected_cashflow,gross_multiple,sde_multiple,sba_loan_payment,additional_loan_payment,total_debt_payments,projected_net_profit_margin])
+
 
   const toggleNotesTextarea = () => {
     setShowNotesTextarea(!showNotesTextarea);
@@ -307,14 +485,6 @@ export default function BusinessMetrics() {
       setShowAllNotes(!showAllNotes);
     };
 
-    const reorder =(list ,startIndex, endIndex)=>{
-
-      const result = Array.from(list)
-      const [removed] = result.splice(startIndex,1)
-      result.splice(endIndex,0,removed)
-      return result;
-
-    }
 
     const onDragEnd = async (result: DropResult) => {
       if (!result.destination) return;
@@ -342,94 +512,29 @@ export default function BusinessMetrics() {
       }
     };
 
-    const calculateDependentKPIs = useMemo(() => {
-      return (cards: MetricCardData[]) => {
-        const getCardValue = (id: string) => cards.find(card => card.id === id)?.value || 0
+
   
-        const currentCashflow = getCardValue('current_cashflow')
-        const expectedSalary = getCardValue('expected_salary')
-        const grossRevenue = getCardValue('gross_revenue')
-        const askingPrice = getCardValue('asking_price')
-        const sdeValue = getCardValue('sde_value')
-        const newExpenses = getCardValue('new_expenses')
-        const sbaLoanAmount = getCardValue('sba_loan_amount')
-        const sbaLoanRate = getCardValue('sba_loan_rate')
-        const sbaLoanTerm = getCardValue('sba_loan_term')
-        const additionalLoanAmount = getCardValue('additional_loan_amount')
-        const additionalLoanRate = getCardValue('additional_loan_rate')
-        const additionalLoanTerm = getCardValue('additional_loan_term')
-        const additionalDebt = getCardValue('additional_debt')
-        
-        
-        
-        
-        // Calculate SBA Loan Payment
-        const sbaLoanPayment = sbaLoanAmount > 0 ? 
-          (sbaLoanAmount * (sbaLoanRate / 1200)) / (1 - Math.pow(1 + (sbaLoanRate / 1200), -sbaLoanTerm * 12)) : 0
-  
-        // Calculate Additional Loan Payment
-        const additionalLoanPayment = additionalLoanAmount > 0 ?
-          (additionalLoanAmount * (additionalLoanRate / 1200)) / (1 - Math.pow(1 + (additionalLoanRate / 1200), -additionalLoanTerm * 12)) : 0
-  
-        // Calculate Total Debt Payments
-        const totalDebtPayments = sbaLoanPayment + additionalLoanPayment + additionalDebt
-  
-        // Calculate Dependent KPIs
-        const dscr = getCardValue('dscr')
-        // totalDebtPayments > 0 ? (currentCashflow + expectedSalary) / totalDebtPayments : 0
-        const projectedCashflow = currentCashflow - totalDebtPayments - newExpenses
-        const grossMultiple = grossRevenue > 0 ? askingPrice / grossRevenue : 0
-        const sdeMultiple = sdeValue > 0 ? askingPrice / sdeValue : 0
-        const projectedNetProfitMargin = grossRevenue > 0 ? (projectedCashflow / grossRevenue) * 100 : 0
-        // console.log(dscr);
-        
-        // console.log(sdeMultiple);
-        
-        return cards.map(card => {
-          switch (card.id) {
-            case 'dscr':
-              return { ...card, value: getCardValue('dscr') }
-            case 'projected_cashflow':
-              return { ...card, value: getCardValue('projected_cashflow')}
-            case 'gross_multiple':
-              return { ...card, value: getCardValue('gross_multiple') }
-            case 'sde_multiple':
-              return { ...card, value: getCardValue('sde_multiple') }
-            case 'sba_loan_payment':
-              return { ...card, value: getCardValue('sba_loan_payment') }
-            case 'additional_loan_payment':
-              return {...card, value: getCardValue('additional_loan_payment')}
-            case 'total_debt_payments':
-              return { ...card, value: getCardValue('total_debt_payments') }
-            case 'projected_net_profit_margin':
-              return { ...card, value: getCardValue('projected_net_profit_margin') }
-            default:
-              return card
-          }
-        })
-      }
-     
-    }, [])
-  
-    useEffect(() => {
-      setIsPageLoading(true)
-      setMetricCards(prevCards => calculateDependentKPIs(prevCards))
-      setIsPageLoading(false)
-    }, [calculateDependentKPIs])
   
     const handleCardClick = (card: MetricCardData) => {
       setEditingCard(card)
     }
+
   
     const handleCardSave = async (updatedCard: MetricCardData) => {
       try {
         setEditingCard(null);
-    
-        const updatedCards = metricCards.map(card => 
-          card.id === updatedCard.id ? updatedCard : card
-        );
-        // const recalculatedCards = calculateDependentKPIs(updatedCards);
-        setMetricCards(updatedCards);
+        
+        metricCards.map((card)=>{
+
+          if (card.id==updatedCard.id) {
+
+            return card.notes = updatedCard.notes
+            
+          }
+  
+        })
+        
+        
        
         const updatedFormData = {
           ...formData,
@@ -449,6 +554,7 @@ export default function BusinessMetrics() {
     
           const numericValue = parseNumber(card.value);
           
+          
           if (card.id.startsWith('custom-')) {
             // Add all custom cards to custom_cards_columns, removing _id
             const { _id, ...cardWithoutId }:any = card;
@@ -457,160 +563,101 @@ export default function BusinessMetrics() {
             // Handle non-custom cards
             switch (card.id) {
               case 'current_cashflow':
-                updatedFormData.current_cashflow = { value: numericValue, notes: card.notes };
-                if (updatedFormData.expected_salary.value >0 && updatedFormData.total_debt_payments.value>0) {
-                  updatedFormData.dscr={value:((numericValue+updatedFormData.expected_salary.value)/updatedFormData.total_debt_payments.value)}
-                  
-                }
-                if (updatedFormData.current_cashflow.value>0 && updatedFormData.total_debt_payments.value>0) {
-
-                  updatedFormData.projected_cashflow={value:(numericValue-updatedFormData.total_debt_payments.value)}
-
-                  
-                }                
-                break;
-              case 'expected_salary':
-                updatedFormData.expected_salary = { value: numericValue, notes: card.notes };
-                if (updatedFormData.current_cashflow.value >0 && updatedFormData.total_debt_payments.value>0) {
-                  updatedFormData.dscr={value:((numericValue+updatedFormData.current_cashflow.value)/updatedFormData.total_debt_payments.value)}
-                  
-                  
-                }
-                break;
-              case 'gross_revenue':
-                updatedFormData.gross_revenue = { value: numericValue, notes: card.notes };
-
-                if (updatedFormData.asking_price.value>0 && numericValue>0) {
-
-                  updatedFormData.gross_multiple={value:(updatedFormData.asking_price.value/numericValue)}
-                  
-                }
-
-                if (updatedFormData.projected_cashflow.value>0 && numericValue>0) {
-                  
-                  updatedFormData.projected_net_profit_margin.value=((updatedFormData.projected_cashflow.value / numericValue)*100)
-
-
-                  
-                }
-                 
                 
 
-           
+                setCurrentCashflow(numericValue)
+                
+                updatedFormData.current_cashflow = { value: numericValue, notes: card.notes };
+                          
+                break;
+              case 'expected_salary':
+                setExpectedSalary(numericValue)
+                updatedFormData.expected_salary = { value: numericValue, notes: card.notes };
+               
+                break;
+              case 'gross_revenue':
+                setGrossRevenue(numericValue)
+                updatedFormData.gross_revenue = { value: numericValue, notes: card.notes };
+
+        
                 break;
               case 'growth_rate':
                 updatedFormData.growth_rate = { value: numericValue, notes: card.notes };
                 break;
               case 'asking_price':
+                setAskingPrice(numericValue)
                 updatedFormData.asking_price = { value: numericValue, notes: card.notes };
-
-                if (numericValue>0 && updatedFormData.gross_revenue.value>0) {
-
-                  updatedFormData.gross_multiple={value:(numericValue/updatedFormData.gross_revenue.value)}
-                  
-                }
-
-                if (numericValue>0 && updatedFormData.sde_value.value>0) {
-                  updatedFormData.sde_multiple={value:(numericValue/updatedFormData.sde_value.value)}
-                  
-                }
-
-
-                
 
                 break;
               case 'sde_value':
+                setSdeValue(numericValue)
                 updatedFormData.sde_value = { value: numericValue, notes: card.notes };
-
-                if (numericValue>0 && updatedFormData.asking_price.value>0) {
-
-                updatedFormData.sde_multiple={value:(updatedFormData.asking_price.value/numericValue)}
-
-                  
-                  
-                }
 
                 
                 break;
               case 'sba_loan_amount':
+                setSbaLoanAmount(numericValue)
                 updatedFormData.loan_sba.amount = { value: numericValue, notes: card.notes };
                 break;
               case 'sba_loan_rate':
+                setSbaLoanRate(numericValue)
                 updatedFormData.loan_sba.rate = { value: numericValue, notes: card.notes };
                 break;
               case 'sba_loan_term':
+                setSbaLoanTerm(numericValue)
                 updatedFormData.loan_sba.term = { value: numericValue, notes: card.notes };
                 break;
               case 'additional_loan_amount':
+                setAdditionalLoanAmount(numericValue)
                 updatedFormData.loan_additional.amount = { value: numericValue, notes: card.notes };
                 break;
               case 'additional_loan_rate':
+                setAdditionalLoanRate(numericValue)
                 updatedFormData.loan_additional.rate = { value: numericValue, notes: card.notes };
                 break;
               case 'additional_loan_term':
+                setAdditionalLoanTerm(numericValue)
                 updatedFormData.loan_additional.term = { value: numericValue, notes: card.notes };
                 break;
               case 'additional_debt':
+                setAdditionalDebt(numericValue)
                 updatedFormData.additional_debt = { value: numericValue, notes: card.notes };
-
-                 updatedFormData.total_debt_payments={ value: (updatedFormData.sba_loan_payment.value + updatedFormData.additional_loan_payment.value + numericValue)}
-
-                
                 break;
+
               case 'dscr':
+                setDscr(numericValue)
+                
                 updatedFormData.dscr = { value: numericValue, notes: card.notes };
                 break;
               case 'projected_cashflow':
+                setProjectedCashflow(numericValue)
                 updatedFormData.projected_cashflow = { value: numericValue, notes: card.notes };
-
-                if(numericValue>0 && updatedFormData.gross_revenue.value>0){
-
-                  updatedFormData.projected_net_profit_margin.value=((numericValue / updatedFormData.gross_revenue.value)*100)
-                  
-
-                }
-
-                
 
                 break;
               case 'gross_multiple':
+                setGrossMultiple(numericValue)
                 updatedFormData.gross_multiple = { value: numericValue, notes: card.notes };
                 break;
               case 'sde_multiple':
+                setSdeMultiple(numericValue)
                 updatedFormData.sde_multiple = { value: numericValue, notes: card.notes };
                 break;
               case 'sba_loan_payment':
+                setSbaLoanPayment(numericValue)
                 updatedFormData.sba_loan_payment = { value: numericValue, notes: card.notes };
 
-                updatedFormData.total_debt_payments={ value: (numericValue + updatedFormData.additional_loan_payment.value + updatedFormData.additional_debt.value)}
-
-                
                 break;
               case 'additional_loan_payment':
+                setAdditionalLoanPayment(numericValue)
                 updatedFormData.additional_loan_payment= {value: numericValue, notes:card.notes};
 
-                updatedFormData.total_debt_payments={ value: (updatedFormData.sba_loan_payment.value + numericValue + updatedFormData.additional_debt.value)}
-
-                
-                
                 break;
               case 'total_debt_payments':
-                updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };
-                if (updatedFormData.current_cashflow.value >0 && updatedFormData.expected_salary.value>0) {
-                  updatedFormData.dscr={value:((updatedFormData.current_cashflow.value + updatedFormData.expected_salary.value)/numericValue)}
-                   
-                  
-                }
-                
-                if (updatedFormData.current_cashflow.value>0 && updatedFormData.total_debt_payments.value>0) {
-
-                  updatedFormData.projected_cashflow={value:(updatedFormData.current_cashflow.value-numericValue)}
-
-                  
-                }
-                
+                setTotalDebtPayments(numericValue)
+                updatedFormData.total_debt_payments = { value: numericValue, notes: card.notes };  
                 break;
               case 'projected_net_profit_margin':
+                setProjectedNetProfitMargin(numericValue)
                 updatedFormData.projected_net_profit_margin = { value: numericValue, notes: card.notes };
                 break;
               default:
@@ -624,14 +671,15 @@ export default function BusinessMetrics() {
     
         // Ensure custom_cards_columns doesn't have _id
         formDataWithoutId.custom_cards_columns = formDataWithoutId.custom_cards_columns.map(({ _id, ...card }) => card);
-        console.log(formDataWithoutId);
         
         setFormData(formDataWithoutId);
         // console.log('Updated form data:', formDataWithoutId);
         
         // Update the business data on the server with the entire formData, excluding _id
         await updateBusiness(id, formDataWithoutId);
-        window.location.reload()
+
+        // window.location.reload()
+        
         toast.success('Metric updated successfully!');
     
       } catch (error) {
@@ -641,9 +689,6 @@ export default function BusinessMetrics() {
     };
   
 
-  const handleCardCancel = () => {
-    setEditingCard(null);
-  };
 
   const handleAddNewCard = () => {
     setIsNewCardModalOpen(true);
@@ -762,13 +807,13 @@ export default function BusinessMetrics() {
       // console.log(cleanedFormData);
       
       // Recalculate dependent KPIs
-      const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
+      // const recalculatedCards = calculateDependentKPIs(updatedMetricCards);
 
       // Update the backend first
       await updateBusiness(id, cleanedFormData);
 
       // If backend update is successful, update local state
-      setMetricCards(recalculatedCards);
+      // setMetricCards(recalculatedCards);
       setFormData(updatedFormData);
 
       toast.success('Custom metric deleted successfully');
