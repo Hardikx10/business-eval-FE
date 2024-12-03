@@ -8,7 +8,7 @@ const Signup = React.lazy(() => import('../pages/signup'));
 const ResetPassword = React.lazy(() => import('../pages/reset-password'));
 const VerifyOtp = React.lazy(() => import('../pages/verify-otp'));
 const ConfirmPassword = React.lazy(() => import('../pages/confirm-password'));
-const AddBusiness = React.lazy(() => import('../pages/add-business'));
+// const AddBusiness = React.lazy(() => import('../pages/add-business'));
 const Dashboard = React.lazy(() => import('../pages/dashboard'));
 const CompareResults = React.lazy(() => import('../pages/compare-results'));
 const Business = React.lazy(()=> import('../pages/business'))
@@ -19,8 +19,8 @@ const Router: React.FC = () => {
     <BrowserRouter>
       <Suspense fallback={<div>Loading...</div>}>
         <Routes>
-          <Route path="/" element={<AddBusiness />} />
-          <Route path='/home' element={<Home/>}/>
+          {/* <Route path="/" element={<AddBusiness />} /> */}
+          <Route path='/' element={<Home/>}/>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/reset-password" element={<ResetPassword />} />
