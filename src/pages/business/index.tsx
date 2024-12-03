@@ -256,7 +256,7 @@ export default function BusinessMetrics() {
     
     if (!user_id) {
 
-      navigate('/home')
+      navigate('/')
       
     }
     async function fetchData() {
